@@ -1,0 +1,161 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogCard from '../../components/blog/BlogCard.astro';
+import FollowButton from '../../components/profile/FollowButton';
+import BlockButton from '../../components/profile/BlockButton';
+import ReportButton from '../../components/ui/ReportButton';
+import { connectToDatabase } from '../../lib/db';
+import { User } from '../../models/User';
+import { Blog } from '../../models/Blog';
+import { Comment } from '../../models/Comment';
+import { Like } from '../../models/Like';
+import { Follow } from '../../models/Follow';
+import { Block } from '../../models/Block';
+
+const { username } = Astro.params;
+const viewer = Astro.locals.user;
+const tab = (Astro.url.searchParams.get('tab') ?? 'blogs') as 'blogs' | 'comments' | 'likes';
+
+await connectToDatabase();
+const profileUser = await User.findOne({ usernameLower: username?.toLowerCase() }).lean();
+if (!profileUser || profileUser.status === 'disabled') return Astro.redirect('/404');
+
+const isSelf = viewer && String(viewer._id) === String(profileUser._id);
+
+let isFollowing = false;
+let isBlocked = false;
+let isBlockedBy = false;
+if (viewer && !isSelf) {
+  const [f, b1, b2] = await Promise.all([
+    Follow.exists({ follower: viewer._id, following: profileUser._id }),
+    Block.exists({ blocker: viewer._id, blocked: profileUser._id }),
+    Block.exists({ blocker: profileUser._id, blocked: viewer._id }),
+  ]);
+  isFollowing = Boolean(f);
+  isBlocked = Boolean(b1);
+  isBlockedBy = Boolean(b2);
+}
+
+if (isBlockedBy && viewer?.role !== 'admin') return Astro.redirect('/404');
+
+const blogFilter: Record<string, unknown> = { author: profileUser._id };
+if (!isSelf && viewer?.role !== 'admin') blogFilter.status = 'published';
+
+const blogsCount = await Blog.countDocuments({ author: profileUser._id, status: 'published' });
+
+let blogs: any[] = [];
+let comments: any[] = [];
+let likedBlogs: any[] = [];
+
+if (!isBlocked) {
+  if (tab === 'blogs') {
+    blogs = await Blog.find(blogFilter).sort({ createdAt: -1 }).limit(20).populate('author', 'username name avatarUrl').lean();
+  } else if (tab === 'comments') {
+    comments = await Comment.find({ author: profileUser._id, deleted: false })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .populate('blog', 'title slug')
+      .lean();
+  } else if (tab === 'likes') {
+    const likes = await Like.find({ user: profileUser._id })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .populate({ path: 'blog', match: { status: 'published' }, populate: { path: 'author', select: 'username name avatarUrl' } })
+      .lean();
+    likedBlogs = likes.map((l) => l.blog).filter(Boolean);
+  }
+}
+
+const tabs = [
+  { key: 'blogs', label: 'Blogs' },
+  { key: 'comments', label: 'Comments' },
+  { key: 'likes', label: 'Likes' },
+] as const;
+---
+
+<BaseLayout title={profileUser.name} description={profileUser.bio || `${profileUser.name} on Marginalia`}>
+  <div class="mx-auto max-w-3xl px-5 py-12 sm:px-8">
+    <div class="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-4">
+        <span class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[var(--color-paper-raised)] text-xl font-medium">
+          {profileUser.avatarUrl ? <img src={profileUser.avatarUrl} alt="" class="h-full w-full object-cover" /> : profileUser.name.charAt(0).toUpperCase()}
+        </span>
+        <div>
+          <h1 class="font-serif text-2xl font-semibold text-[var(--color-ink)]">{profileUser.name}</h1>
+          <p class="text-sm text-[var(--color-ink-soft)]">@{profileUser.username}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        {isSelf && (
+          <a href="/dashboard/settings" class="rounded-full border border-[var(--color-line)] px-4 py-2 text-sm text-[var(--color-ink)] hover:bg-[var(--color-paper-raised)]">
+            Edit profile
+          </a>
+        )}
+        {!isSelf && viewer && !isBlockedBy && (
+          <>
+            <FollowButton client:load userId={String(profileUser._id)} initialFollowing={isFollowing} isAuthenticated={Boolean(viewer)} />
+            <BlockButton client:load userId={String(profileUser._id)} initialBlocked={isBlocked} />
+            <ReportButton client:idle targetType="user" targetId={String(profileUser._id)} isAuthenticated={Boolean(viewer)} label="Report" />
+          </>
+        )}
+      </div>
+    </div>
+
+    {profileUser.bio && <p class="mt-5 max-w-lg text-sm text-[var(--color-ink-soft)]">{profileUser.bio}</p>}
+
+    <div class="mt-6 flex gap-6 text-sm">
+      <a href={`/profile/${profileUser.username}/following`} class="text-[var(--color-ink)]">
+        <strong>{profileUser.followingCount}</strong> <span class="text-[var(--color-ink-soft)]">Following</span>
+      </a>
+      <a href={`/profile/${profileUser.username}/followers`} class="text-[var(--color-ink)]">
+        <strong>{profileUser.followersCount}</strong> <span class="text-[var(--color-ink-soft)]">Followers</span>
+      </a>
+      <span class="text-[var(--color-ink)]">
+        <strong>{blogsCount}</strong> <span class="text-[var(--color-ink-soft)]">Blogs</span>
+      </span>
+    </div>
+
+    {isBlocked ? (
+      <div class="mt-10 rounded-lg border border-dashed border-[var(--color-line)] px-6 py-14 text-center">
+        <p class="text-sm text-[var(--color-ink-soft)]">You've blocked this user. Unblock them to see their content.</p>
+      </div>
+    ) : (
+      <>
+        <div class="mt-8 flex gap-1 border-b border-[var(--color-line)]">
+          {tabs.map((t) => (
+            <a
+              href={`/profile/${profileUser.username}?tab=${t.key}`}
+              class:list={[
+                'border-b-2 px-4 py-2.5 text-sm font-medium transition',
+                t.key === tab ? 'border-[var(--color-accent)] text-[var(--color-ink)]' : 'border-transparent text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]',
+              ]}
+            >
+              {t.label}
+            </a>
+          ))}
+        </div>
+
+        <div class="mt-4">
+          {tab === 'blogs' && blogs.length === 0 && <p class="py-10 text-center text-sm text-[var(--color-ink-soft)]">No blogs yet.</p>}
+          {tab === 'blogs' && blogs.map((b) => <BlogCard blog={b} compact />)}
+
+          {tab === 'comments' && comments.length === 0 && <p class="py-10 text-center text-sm text-[var(--color-ink-soft)]">No comments yet.</p>}
+          {tab === 'comments' && (
+            <ul class="divide-y divide-[var(--color-line)]">
+              {comments.map((c) => (
+                <li class="py-4">
+                  <a href={`/blog/${c.blog?.slug}`} class="text-xs text-[var(--color-ink-soft)] hover:text-[var(--color-accent)]">{c.blog?.title}</a>
+                  <p class="mt-1 text-sm text-[var(--color-ink)]">{c.content}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {tab === 'likes' && likedBlogs.length === 0 && <p class="py-10 text-center text-sm text-[var(--color-ink-soft)]">No liked blogs yet.</p>}
+          {tab === 'likes' && likedBlogs.map((b) => <BlogCard blog={b} compact />)}
+        </div>
+      </>
+    )}
+  </div>
+</BaseLayout>

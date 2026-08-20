@@ -1,0 +1,28 @@
+---
+import DashboardShell from '../../layouts/DashboardShell.astro';
+import BlogCard from '../../components/blog/BlogCard.astro';
+import { connectToDatabase } from '../../lib/db';
+import { Like } from '../../models/Like';
+
+const user = Astro.locals.user!;
+await connectToDatabase();
+
+const likes = await Like.find({ user: user._id })
+  .sort({ createdAt: -1 })
+  .limit(50)
+  .populate({ path: 'blog', populate: { path: 'author', select: 'username name avatarUrl' } })
+  .lean();
+
+const blogs = likes.map((l) => l.blog).filter(Boolean);
+---
+
+<DashboardShell title="Liked Blogs" active="likes">
+  <h1 class="mb-6 font-serif text-2xl font-semibold text-[var(--color-ink)]">Blogs you've liked</h1>
+  {blogs.length === 0 ? (
+    <div class="rounded-lg border border-dashed border-[var(--color-line)] px-6 py-14 text-center">
+      <p class="text-sm text-[var(--color-ink-soft)]">You haven't liked any blogs yet.</p>
+    </div>
+  ) : (
+    blogs.map((b: any) => <BlogCard blog={b} compact />)
+  )}
+</DashboardShell>

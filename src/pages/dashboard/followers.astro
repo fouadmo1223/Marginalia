@@ -1,0 +1,34 @@
+---
+import DashboardShell from '../../layouts/DashboardShell.astro';
+import { connectToDatabase } from '../../lib/db';
+import { Follow } from '../../models/Follow';
+
+const user = Astro.locals.user!;
+await connectToDatabase();
+const follows = await Follow.find({ following: user._id }).sort({ createdAt: -1 }).populate('follower', 'username name avatarUrl bio').lean();
+---
+
+<DashboardShell title="Followers" active="followers">
+  <h1 class="mb-6 font-serif text-2xl font-semibold text-[var(--color-ink)]">Followers</h1>
+  {follows.length === 0 ? (
+    <div class="rounded-lg border border-dashed border-[var(--color-line)] px-6 py-14 text-center">
+      <p class="text-sm text-[var(--color-ink-soft)]">No followers yet.</p>
+    </div>
+  ) : (
+    <ul class="divide-y divide-[var(--color-line)] rounded-lg border border-[var(--color-line)] bg-white">
+      {follows.map((f: any) => (
+        <li class="px-4 py-3">
+          <a href={`/profile/${f.follower.username}`} class="flex items-center gap-3">
+            <span class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[var(--color-paper-raised)] text-sm font-medium">
+              {f.follower.avatarUrl ? <img src={f.follower.avatarUrl} alt="" class="h-full w-full object-cover" /> : f.follower.name.charAt(0).toUpperCase()}
+            </span>
+            <span>
+              <span class="block text-sm font-medium text-[var(--color-ink)]">{f.follower.name}</span>
+              <span class="block text-xs text-[var(--color-ink-soft)]">@{f.follower.username}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</DashboardShell>
