@@ -101,12 +101,16 @@
     --color-secondary: #6b9970;
   }
 
-  html, body {
+  html {
     /* Decorative glow/blur elements and horizontal scroll-snap strips throughout
        the homepage intentionally sit outside their container's box (e.g. -right-20
        blur circles) — clipped by their own section normally, but any one-off miss
        (or a mid-animation scale/blur bleed) shouldn't be able to widen the page
-       itself and produce a stray horizontal scrollbar on mobile. */
+       itself and produce a stray horizontal scrollbar on mobile.
+       Only html gets this, not body: setting overflow-x on body makes body itself
+       a scroll container (overflow-x != visible forces overflow-y: auto too),
+       which breaks position:sticky for descendants — they'd stick relative to
+       body's box instead of the real viewport scroll. */
     overflow-x: hidden;
   }
 
