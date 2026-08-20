@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AuthCard from '../components/ui/AuthCard.astro';
+import VerifyEmail from '../components/auth/VerifyEmail';
+
+const token = Astro.url.searchParams.get('token') ?? '';
+---
+
+<BaseLayout title="Verify your email" noIndex>
+  <AuthCard title="Email verification">
+    <VerifyEmail client:load token={token} />
+  </AuthCard>
+</BaseLayout>

@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AuthCard from '../components/ui/AuthCard.astro';
+import GoogleButton from '../components/ui/GoogleButton.astro';
+import LoginForm from '../components/auth/LoginForm';
+
+if (Astro.locals.user) return Astro.redirect('/dashboard');
+
+const next = Astro.url.searchParams.get('next') ?? '/dashboard';
+const error = Astro.url.searchParams.get('error');
+const errorMessages: Record<string, string> = {
+  oauth_failed: 'Google sign-in failed. Please try again.',
+  oauth_email_unverified: 'Your Google email is not verified.',
+  account_disabled: 'This account has been disabled.',
+};
+---
+
+<BaseLayout title="Sign in" noIndex>
+  <AuthCard title="Welcome back" subtitle="Sign in to continue reading and writing.">
+    <div class="space-y-5">
+      {error && errorMessages[error] && (
+        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessages[error]}</p>
+      )}
+      <GoogleButton />
+      <div class="flex items-center gap-3 text-xs text-[var(--color-ink-soft)]">
+        <span class="h-px flex-1 bg-[var(--color-line)]"></span>
+        or
+        <span class="h-px flex-1 bg-[var(--color-line)]"></span>
+      </div>
+      <LoginForm client:load next={next} />
+    </div>
+    <p class="mt-6 text-center text-sm text-[var(--color-ink-soft)]">
+      New here? <a href="/register" class="text-[var(--color-accent)] hover:underline">Create an account</a>
+    </p>
+  </AuthCard>
+</BaseLayout>

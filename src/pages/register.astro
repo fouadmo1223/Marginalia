@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AuthCard from '../components/ui/AuthCard.astro';
+import GoogleButton from '../components/ui/GoogleButton.astro';
+import RegisterForm from '../components/auth/RegisterForm';
+
+if (Astro.locals.user) return Astro.redirect('/dashboard');
+---
+
+<BaseLayout title="Create your account" noIndex>
+  <AuthCard title="Join Marginalia" subtitle="Publish your writing and build an audience.">
+    <div class="space-y-5">
+      <GoogleButton />
+      <div class="flex items-center gap-3 text-xs text-[var(--color-ink-soft)]">
+        <span class="h-px flex-1 bg-[var(--color-line)]"></span>
+        or
+        <span class="h-px flex-1 bg-[var(--color-line)]"></span>
+      </div>
+      <RegisterForm client:load />
+    </div>
+    <p class="mt-6 text-center text-sm text-[var(--color-ink-soft)]">
+      Already have an account? <a href="/login" class="text-[var(--color-accent)] hover:underline">Sign in</a>
+    </p>
+  </AuthCard>
+</BaseLayout>
