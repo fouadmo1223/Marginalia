@@ -1,0 +1,11 @@
+---
+import DashboardShell from '../../layouts/DashboardShell.astro';
+import SettingsForm from '../../components/dashboard/SettingsForm';
+
+const user = Astro.locals.user!;
+---
+
+<DashboardShell title="Settings" active="settings">
+  <h1 class="mb-6 font-serif text-2xl font-semibold text-[var(--color-ink)]">Settings</h1>
+  <SettingsForm client:load initialName={user.name} initialBio={user.bio} initialAvatar={user.avatarUrl} username={user.username} />
+</DashboardShell>
