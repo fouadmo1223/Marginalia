@@ -247,4 +247,10 @@
   .prose-article ul, .prose-article ol { margin: 1.1em 0; padding-left: 1.4em; }
   .prose-article li { margin: 0.4em 0; }
   .prose-article code { background: var(--color-paper-raised); padding: 0.15em 0.4em; border-radius: 3px; font-size: 0.9em; }
+
+  .editor-content:empty::before {
+    content: attr(data-placeholder);
+    color: var(--color-ink-soft);
+    pointer-events: none;
+  }
 }

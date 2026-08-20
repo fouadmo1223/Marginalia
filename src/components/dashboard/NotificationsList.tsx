@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { api } from '../../lib/api-client';
 
 interface NotificationItem {
@@ -55,32 +55,38 @@ export default function NotificationsList() {
   return (
     <div>
       <div className="mb-4 flex justify-end">
-        <button onClick={markAllRead} className="text-sm text-[var(--color-accent)] hover:underline">
+        <button onClick={markAllRead} className="cursor-pointer text-sm font-medium text-[var(--color-accent)] hover:underline">
           Mark all as read
         </button>
       </div>
 
       {loading && items.length === 0 && <p className="text-sm text-[var(--color-ink-soft)]">Loading…</p>}
-      {!loading && items.length === 0 && <p className="text-sm text-[var(--color-ink-soft)]">No notifications yet.</p>}
+      {!loading && items.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-[var(--color-border)] px-6 py-14 text-center">
+          <p className="text-sm text-[var(--color-ink-soft)]">No notifications yet.</p>
+        </div>
+      )}
 
-      <ul className="divide-y divide-[var(--color-line)] rounded-lg border border-[var(--color-line)] bg-white">
-        {items.map((item) => (
-          <li key={item._id}>
-            <button
-              onClick={() => openItem(item)}
-              className={`block w-full px-4 py-3 text-left text-sm hover:bg-[var(--color-paper-raised)] ${
-                item.read ? '' : 'bg-[var(--color-accent-soft)]/40'
-              }`}
-            >
-              <span className="text-[var(--color-ink)]">{MESSAGES[item.type](item.actor.name)}</span>
-              {item.blog && <span className="block text-xs text-[var(--color-ink-soft)]">{item.blog.title}</span>}
-            </button>
-          </li>
-        ))}
-      </ul>
+      {items.length > 0 && (
+        <ul className="divide-y divide-[var(--color-border)] overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
+          {items.map((item, i) => (
+            <li key={item._id} className="stagger-in" style={{ '--stagger-i': i } as CSSProperties}>
+              <button
+                onClick={() => openItem(item)}
+                className={`block w-full cursor-pointer px-4 py-3.5 text-left text-sm transition-colors hover:bg-[var(--color-surface-raised)] ${
+                  item.read ? '' : 'bg-[var(--color-accent-soft)]/50'
+                }`}
+              >
+                <span className="text-[var(--color-ink-strong)]">{MESSAGES[item.type](item.actor.name)}</span>
+                {item.blog && <span className="block text-xs text-[var(--color-ink-soft)]">{item.blog.title}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {page < totalPages && (
-        <button onClick={() => load(page + 1)} className="mt-4 text-sm text-[var(--color-accent)] hover:underline">
+        <button onClick={() => load(page + 1)} className="mt-4 cursor-pointer text-sm font-medium text-[var(--color-accent)] hover:underline">
           Load more
         </button>
       )}

@@ -9,22 +9,22 @@ const follows = await Follow.find({ follower: user._id }).sort({ createdAt: -1 }
 ---
 
 <DashboardShell title="Following" active="following">
-  <h1 class="mb-6 font-serif text-2xl font-semibold text-[var(--color-ink)]">Following</h1>
+  <h1 class="mb-6 font-serif text-2xl font-semibold text-[var(--color-ink-strong)]">Following</h1>
   {follows.length === 0 ? (
-    <div class="rounded-lg border border-dashed border-[var(--color-line)] px-6 py-14 text-center">
+    <div class="rounded-2xl border border-dashed border-[var(--color-border)] px-6 py-14 text-center">
       <p class="text-sm text-[var(--color-ink-soft)]">You're not following anyone yet.</p>
-      <a href="/explore" class="mt-4 inline-block rounded-full bg-[var(--color-ink)] px-5 py-2 text-sm font-medium text-[var(--color-paper)]">Explore writers</a>
+      <a href="/explore" class="mt-4 inline-block rounded-full bg-[var(--color-ink)] px-5 py-2 text-sm font-medium text-[var(--color-paper)] hover:bg-[var(--color-accent)]">Explore writers</a>
     </div>
   ) : (
-    <ul class="divide-y divide-[var(--color-line)] rounded-lg border border-[var(--color-line)] bg-white">
-      {follows.map((f: any) => (
-        <li class="px-4 py-3">
-          <a href={`/profile/${f.following.username}`} class="flex items-center gap-3">
-            <span class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[var(--color-paper-raised)] text-sm font-medium">
+    <ul class="divide-y divide-[var(--color-border)] overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
+      {follows.map((f: any, i: number) => (
+        <li class="stagger-in transition-colors hover:bg-[var(--color-surface-raised)]" style={`--stagger-i: ${i}`}>
+          <a href={`/profile/${f.following.username}`} class="flex items-center gap-3 px-4 py-3">
+            <span class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[var(--color-accent-soft)] text-sm font-semibold text-[var(--color-accent)]">
               {f.following.avatarUrl ? <img src={f.following.avatarUrl} alt="" class="h-full w-full object-cover" /> : f.following.name.charAt(0).toUpperCase()}
             </span>
             <span>
-              <span class="block text-sm font-medium text-[var(--color-ink)]">{f.following.name}</span>
+              <span class="block text-sm font-medium text-[var(--color-ink-strong)]">{f.following.name}</span>
               <span class="block text-xs text-[var(--color-ink-soft)]">@{f.following.username}</span>
             </span>
           </a>

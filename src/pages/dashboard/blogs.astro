@@ -42,24 +42,24 @@ const tabs = [
   </div>
 
   {blogs.length === 0 ? (
-    <div class="rounded-lg border border-dashed border-[var(--color-line)] px-6 py-14 text-center">
+    <div class="rounded-2xl border border-dashed border-[var(--color-border)] px-6 py-14 text-center">
       <p class="text-sm text-[var(--color-ink-soft)]">Nothing here yet.</p>
     </div>
   ) : (
-    <ul class="divide-y divide-[var(--color-line)] rounded-lg border border-[var(--color-line)] bg-white">
-      {blogs.map((b) => (
-        <li class="flex items-center justify-between gap-4 px-4 py-4">
+    <ul class="divide-y divide-[var(--color-border)] overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
+      {blogs.map((b, i) => (
+        <li class="stagger-in flex items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-[var(--color-surface-raised)]" style={`--stagger-i: ${i}`}>
           <div class="min-w-0">
-            <a href={b.status === 'published' ? `/blog/${b.slug}` : `/dashboard/edit/${b._id}`} class="truncate font-serif text-base font-medium text-[var(--color-ink)] hover:text-[var(--color-accent)]">
+            <a href={b.status === 'published' ? `/blog/${b.slug}` : `/dashboard/edit/${b._id}`} class="truncate font-serif text-base font-semibold text-[var(--color-ink-strong)] hover:text-[var(--color-accent)]">
               {b.title}
             </a>
             <p class="mt-1 text-xs text-[var(--color-ink-soft)]">{b.likesCount} likes &middot; {b.commentsCount} comments &middot; {b.viewsCount} views</p>
           </div>
           <div class="flex shrink-0 items-center gap-3">
-            <span class:list={['rounded-full px-2.5 py-0.5 text-xs', b.status === 'published' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700']}>
+            <span class:list={['rounded-full px-2.5 py-0.5 text-xs font-semibold', b.status === 'published' ? 'bg-[var(--color-success-soft)] text-[var(--color-success)]' : 'bg-[var(--color-warning-soft)] text-[var(--color-warning)]']}>
               {b.status}
             </span>
-            <a href={`/dashboard/edit/${b._id}`} class="text-sm text-[var(--color-accent)] hover:underline">Edit</a>
+            <a href={`/dashboard/edit/${b._id}`} class="text-sm font-medium text-[var(--color-accent)] hover:underline">Edit</a>
           </div>
         </li>
       ))}

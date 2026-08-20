@@ -46,34 +46,50 @@ function timestamp(blog: (typeof blogs)[number]) {
     No stories match these filters.
   </p>
 
-  <div data-filter-grid class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-    {blogs.map((blog) => {
+  <div data-filter-grid class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {blogs.map((blog, i) => {
       const date = new Date(blog.publishedAt ?? blog.createdAt);
       return (
         <a
           href={`/blog/${blog.slug}`}
-          class:list={['filter-item group block overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg', ...blog.categories.map((c) => `cat-${c.slug}`)]}
+          data-reveal
+          style={`transition-delay: ${Math.min(i, 5) * 50}ms`}
+          class:list={['filter-item group block overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-[var(--color-border-strong)]', ...blog.categories.map((c) => `cat-${c.slug}`)]}
           data-item
           data-likes={blog.likesCount}
           data-date={timestamp(blog)}
         >
-          <div class="aspect-[16/10] w-full overflow-hidden bg-[var(--color-paper-raised)]">
-            {blog.coverImage && (
-              <img src={blog.coverImage.url} alt="" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <div class="relative aspect-[16/10] w-full overflow-hidden bg-[var(--color-paper-raised)]">
+            {blog.coverImage ? (
+              <img src={blog.coverImage.url} alt="" loading="lazy" class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+            ) : (
+              <div class="flex h-full w-full items-center justify-center font-serif text-3xl text-[var(--color-ink-soft)]/40">{blog.title.charAt(0)}</div>
             )}
-          </div>
-          <div class="p-4">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
             {blog.categories[0] && (
-              <span class="mb-2 inline-block rounded-full bg-[var(--color-paper-raised)] px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--color-ink-soft)]">
+              <span class="absolute left-3 top-3 rounded-full bg-black/40 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white backdrop-blur-md">
                 {blog.categories[0].name}
               </span>
             )}
-            <h3 class="font-serif text-lg font-semibold leading-snug text-[var(--color-ink)] transition group-hover:text-[var(--color-accent)]">
+          </div>
+          <div class="p-5">
+            <h3 class="line-clamp-2 font-serif text-lg font-semibold leading-snug text-[var(--color-ink-strong)] transition-colors group-hover:text-[var(--color-accent)]">
               {blog.title}
             </h3>
-            <div class="mt-3 flex items-center justify-between text-xs text-[var(--color-ink-soft)]">
-              <span>{blog.author?.name ?? 'Unknown'}</span>
-              <span>{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} &middot; {blog.likesCount} likes</span>
+            <div class="mt-4 flex items-center justify-between border-t border-[var(--color-border)] pt-3 text-xs text-[var(--color-ink-soft)]">
+              <span class="flex min-w-0 items-center gap-1.5">
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-soft)] text-[9px] font-bold text-[var(--color-accent)]">
+                  {(blog.author?.name ?? '?').charAt(0).toUpperCase()}
+                </span>
+                <span class="truncate font-medium">{blog.author?.name ?? 'Unknown'}</span>
+              </span>
+              <span class="flex shrink-0 items-center gap-2.5">
+                <time>{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</time>
+                <span class="flex items-center gap-1">
+                  <svg class="h-3 w-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-6.5-4.35-9.5-8.55C.63 9.9 1.3 6.1 4.6 4.7c2.02-.86 4.16-.13 5.4 1.5C11.24 4.57 13.38 3.84 15.4 4.7c3.3 1.4 3.97 5.2 2.1 7.75C18.5 16.65 12 21 12 21Z" /></svg>
+                  {blog.likesCount}
+                </span>
+              </span>
             </div>
           </div>
         </a>

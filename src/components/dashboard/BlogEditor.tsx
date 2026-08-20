@@ -20,7 +20,8 @@ interface InitialBlog {
 }
 
 const inputClass =
-  'w-full rounded-lg border border-[var(--color-line)] bg-white px-3.5 py-2.5 text-sm text-[var(--color-ink)] focus:border-[var(--color-accent)] focus:outline-none';
+  'w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2.5 text-sm text-[var(--color-ink-strong)] placeholder:text-[var(--color-ink-soft)] transition-colors focus:border-[var(--color-accent)] focus:outline-none';
+const labelClass = 'mb-1.5 block text-sm font-semibold text-[var(--color-ink-strong)]';
 
 export default function BlogEditor({
   categories,
@@ -115,23 +116,27 @@ export default function BlogEditor({
 
   return (
     <div className="space-y-6">
-      {error && <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {error && (
+        <p role="alert" className="rounded-xl bg-[var(--color-error-soft)] px-3.5 py-2.5 text-sm font-medium text-[var(--color-error)]">
+          {error}
+        </p>
+      )}
 
       <div className="flex items-center justify-between">
-        <button onClick={() => setPreview((v) => !v)} className="text-sm text-[var(--color-accent)] hover:underline">
+        <button onClick={() => setPreview((v) => !v)} className="cursor-pointer text-sm font-medium text-[var(--color-accent)] hover:underline">
           {preview ? 'Back to editing' : 'Preview'}
         </button>
         {isEdit && (
-          <button onClick={remove} className="text-sm text-red-600 hover:underline">
+          <button onClick={remove} className="cursor-pointer text-sm font-medium text-[var(--color-error)] hover:underline">
             Delete blog
           </button>
         )}
       </div>
 
       {preview ? (
-        <article className="rounded-lg border border-[var(--color-line)] bg-white p-8">
-          {cover && <img src={cover.url} alt="" className="mb-6 w-full rounded-md object-cover" style={{ aspectRatio: '16/9' }} />}
-          <h1 className="font-serif text-3xl font-semibold text-[var(--color-ink)]">{title || 'Untitled'}</h1>
+        <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8 shadow-sm">
+          {cover && <img src={cover.url} alt="" className="mb-6 w-full rounded-lg object-cover" style={{ aspectRatio: '16/9' }} />}
+          <h1 className="font-serif text-3xl font-semibold text-[var(--color-ink-strong)]">{title || 'Untitled'}</h1>
           {excerpt && <p className="mt-3 text-lg text-[var(--color-ink-soft)]">{excerpt}</p>}
           <div className="prose-article mt-6" dangerouslySetInnerHTML={{ __html: content }} />
         </article>
@@ -141,20 +146,24 @@ export default function BlogEditor({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Blog title"
-            className="w-full border-none bg-transparent font-serif text-3xl font-semibold text-[var(--color-ink)] placeholder:text-[var(--color-ink-soft)]/50 focus:outline-none"
+            className="w-full border-none bg-transparent font-serif text-3xl font-semibold text-[var(--color-ink-strong)] placeholder:text-[var(--color-ink-soft)] focus:outline-none"
           />
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink)]">Cover image</label>
+            <label className={labelClass}>Cover image</label>
             {cover ? (
-              <div className="relative">
-                <img src={cover.url} alt="" className="w-full rounded-md object-cover" style={{ aspectRatio: '16/9' }} />
-                <button onClick={() => setCover(null)} className="absolute right-2 top-2 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-[var(--color-ink)]">
+              <div className="group relative overflow-hidden rounded-xl">
+                <img src={cover.url} alt="" className="w-full object-cover" style={{ aspectRatio: '16/9' }} />
+                <button
+                  onClick={() => setCover(null)}
+                  className="absolute right-2 top-2 cursor-pointer rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70"
+                >
                   Remove
                 </button>
               </div>
             ) : (
-              <label className="flex h-32 cursor-pointer items-center justify-center rounded-lg border border-dashed border-[var(--color-line)] text-sm text-[var(--color-ink-soft)] hover:border-[var(--color-accent)]">
+              <label className="flex h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--color-border)] text-sm text-[var(--color-ink-soft)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]">
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><path d="M12 16.5V9m0 0-3 3m3-3 3 3M4.5 19.5h15a1 1 0 0 0 1-1v-13a1 1 0 0 0-1-1h-15a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1Z" /></svg>
                 {coverUploading ? 'Uploading…' : 'Click to upload a cover image'}
                 <input type="file" accept="image/*" hidden onChange={onCoverSelected} />
               </label>
@@ -162,28 +171,28 @@ export default function BlogEditor({
           </div>
 
           <div>
-            <label htmlFor="excerpt" className="mb-1.5 block text-sm font-medium text-[var(--color-ink)]">Excerpt</label>
+            <label htmlFor="excerpt" className={labelClass}>Excerpt</label>
             <textarea id="excerpt" rows={2} maxLength={400} className={inputClass} value={excerpt} onChange={(e) => setExcerpt(e.target.value)} placeholder="A short summary shown in feeds and search results" />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink)]">Content</label>
+            <label className={labelClass}>Content</label>
             <RichTextEditor value={content} onChange={setContent} uploadFolder="blog-content" />
           </div>
 
           {categories.length > 0 && (
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink)]">Categories</label>
+              <label className={labelClass}>Categories</label>
               <div className="flex flex-wrap gap-2">
                 {categories.map((c) => (
                   <button
                     key={c._id}
                     type="button"
                     onClick={() => toggleCategory(c._id)}
-                    className={`rounded-full border px-3 py-1 text-xs ${
+                    className={`cursor-pointer rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                       selectedCategories.includes(c._id)
                         ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-accent)]'
-                        : 'border-[var(--color-line)] text-[var(--color-ink-soft)]'
+                        : 'border-[var(--color-border)] text-[var(--color-ink-soft)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-ink)]'
                     }`}
                   >
                     {c.name}
@@ -194,22 +203,24 @@ export default function BlogEditor({
           )}
 
           <div>
-            <label htmlFor="tags" className="mb-1.5 block text-sm font-medium text-[var(--color-ink)]">Tags</label>
-            <input id="tags" className={inputClass} value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="comma, separated, tags" />
+            <label htmlFor="tags" className={labelClass}>
+              Tags <span className="font-normal text-[var(--color-ink-soft)]">(comma-separated, up to 10)</span>
+            </label>
+            <input id="tags" className={inputClass} value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="design, culture, ai" />
           </div>
 
-          <div className="flex gap-3 border-t border-[var(--color-line)] pt-6">
+          <div className="flex gap-3 border-t border-[var(--color-border)] pt-6">
             <button
               onClick={() => save('draft')}
               disabled={saving !== null}
-              className="rounded-full border border-[var(--color-line)] px-5 py-2.5 text-sm font-medium text-[var(--color-ink)] hover:bg-[var(--color-paper-raised)] disabled:opacity-60"
+              className="cursor-pointer rounded-full border border-[var(--color-border)] px-5 py-2.5 text-sm font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-surface-raised)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving === 'draft' ? 'Saving…' : 'Save draft'}
             </button>
             <button
               onClick={() => save('published')}
               disabled={saving !== null}
-              className="rounded-full bg-[var(--color-ink)] px-5 py-2.5 text-sm font-medium text-[var(--color-paper)] hover:bg-[var(--color-accent)] disabled:opacity-60"
+              className="cursor-pointer rounded-full bg-[var(--color-ink)] px-5 py-2.5 text-sm font-medium text-[var(--color-paper)] transition-colors hover:bg-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving === 'published' ? 'Publishing…' : 'Publish'}
             </button>

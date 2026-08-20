@@ -14,17 +14,17 @@ const comments = await Comment.find({ author: user._id, deleted: false })
 ---
 
 <DashboardShell title="My Comments" active="comments">
-  <h1 class="mb-6 font-serif text-2xl font-semibold text-[var(--color-ink)]">Comments</h1>
+  <h1 class="mb-6 font-serif text-2xl font-semibold text-[var(--color-ink-strong)]">Comments</h1>
   {comments.length === 0 ? (
-    <div class="rounded-lg border border-dashed border-[var(--color-line)] px-6 py-14 text-center">
+    <div class="rounded-2xl border border-dashed border-[var(--color-border)] px-6 py-14 text-center">
       <p class="text-sm text-[var(--color-ink-soft)]">You haven't commented on anything yet.</p>
     </div>
   ) : (
-    <ul class="divide-y divide-[var(--color-line)] rounded-lg border border-[var(--color-line)] bg-white">
-      {comments.map((c: any) => (
-        <li class="px-4 py-4">
-          <a href={`/blog/${c.blog?.slug}`} class="text-xs text-[var(--color-ink-soft)] hover:text-[var(--color-accent)]">{c.blog?.title}</a>
-          <p class="mt-1 text-sm text-[var(--color-ink)]">{c.content}</p>
+    <ul class="divide-y divide-[var(--color-border)] overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
+      {comments.map((c: any, i: number) => (
+        <li class="stagger-in px-4 py-4 transition-colors hover:bg-[var(--color-surface-raised)]" style={`--stagger-i: ${i}`}>
+          <a href={`/blog/${c.blog?.slug}`} class="text-xs font-medium text-[var(--color-accent)] hover:underline">{c.blog?.title}</a>
+          <p class="mt-1.5 text-sm text-[var(--color-ink-strong)]">{c.content}</p>
         </li>
       ))}
     </ul>

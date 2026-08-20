@@ -57,23 +57,24 @@ export default function RichTextEditor({
   }
 
   return (
-    <div className="rounded-lg border border-[var(--color-line)] bg-white">
-      <div className="flex flex-wrap gap-1 border-b border-[var(--color-line)] p-2">
+    <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] transition-colors focus-within:border-[var(--color-accent)]">
+      <div className="flex flex-wrap gap-1 border-b border-[var(--color-border)] bg-[var(--color-surface-raised)] p-2">
         {BUTTONS.map((b) => (
           <button
             key={b.label}
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => exec(b.cmd, b.arg)}
-            className="rounded px-2.5 py-1 text-xs font-medium text-[var(--color-ink)] hover:bg-[var(--color-paper-raised)]"
+            className="cursor-pointer rounded-md px-2.5 py-1 text-xs font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-accent-soft)] hover:text-[var(--color-accent)]"
           >
             {b.label}
           </button>
         ))}
-        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={insertLink} className="rounded px-2.5 py-1 text-xs font-medium text-[var(--color-ink)] hover:bg-[var(--color-paper-raised)]">
+        <span className="mx-1 my-1 w-px bg-[var(--color-border)]" aria-hidden="true" />
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={insertLink} className="cursor-pointer rounded-md px-2.5 py-1 text-xs font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-accent-soft)] hover:text-[var(--color-accent)]">
           Link
         </button>
-        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => fileInputRef.current?.click()} className="rounded px-2.5 py-1 text-xs font-medium text-[var(--color-ink)] hover:bg-[var(--color-paper-raised)]">
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => fileInputRef.current?.click()} className="cursor-pointer rounded-md px-2.5 py-1 text-xs font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-accent-soft)] hover:text-[var(--color-accent)]">
           Image
         </button>
         <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={onFileSelected} />
@@ -83,8 +84,8 @@ export default function RichTextEditor({
         contentEditable
         suppressContentEditableWarning
         onInput={() => onChange(ref.current?.innerHTML ?? '')}
-        className="prose-article min-h-[320px] max-w-none p-4 text-base focus:outline-none"
-        data-placeholder={uploadFolder}
+        className="prose-article editor-content min-h-[320px] max-w-none p-4 text-base text-[var(--color-ink-strong)] focus:outline-none"
+        data-placeholder="Start writing…"
         aria-label="Blog content"
       />
     </div>
