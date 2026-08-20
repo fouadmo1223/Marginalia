@@ -1,0 +1,17 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+}
+const { title, subtitle } = Astro.props;
+---
+
+<div class="mx-auto flex min-h-[calc(100vh-8rem)] max-w-md flex-col justify-center px-5 py-16">
+  <div class="mb-8 text-center">
+    <h1 class="font-serif text-3xl font-semibold text-[var(--color-ink)]">{title}</h1>
+    {subtitle && <p class="mt-2 text-sm text-[var(--color-ink-soft)]">{subtitle}</p>}
+  </div>
+  <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-7 shadow-sm">
+    <slot />
+  </div>
+</div>

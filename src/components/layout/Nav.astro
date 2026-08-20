@@ -1,0 +1,91 @@
+---
+import SearchPalette from '../ui/SearchPalette';
+import UserMenu from '../ui/UserMenu';
+import NotificationsBell from '../ui/NotificationsBell';
+import MobileMenu from '../ui/MobileMenu';
+
+const user = Astro.locals.user;
+const userPayload = user
+  ? {
+      id: String(user._id),
+      username: user.username,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      role: user.role,
+    }
+  : null;
+
+const path = Astro.url.pathname;
+const links = [
+  { href: '/', label: 'Home', active: path === '/' },
+  { href: '/feed', label: 'Feed', active: path === '/feed' },
+  { href: '/explore', label: 'Explore', active: path.startsWith('/explore') },
+];
+---
+
+<header
+  data-site-header
+  class="sticky top-0 z-40 border-b border-transparent transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 [&.is-scrolled]:border-[var(--color-border)] [&.is-scrolled]:bg-[color-mix(in_srgb,var(--color-surface)_78%,transparent)] [&.is-scrolled]:shadow-[0_1px_0_0_rgba(0,0,0,0.02),0_12px_28px_-18px_rgba(0,0,0,0.25)] [&.is-scrolled]:backdrop-blur-xl"
+>
+  <div class="mx-auto flex max-w-6xl items-center gap-3 px-5 py-4 sm:gap-5 sm:px-8">
+    <a href="/" class="group flex shrink-0 items-center gap-1.5">
+      <span class="h-[7px] w-[7px] rounded-full bg-[var(--color-accent)] transition-transform group-hover:scale-125"></span>
+      <span class="font-serif text-lg font-semibold tracking-tight text-[var(--color-ink)] sm:text-xl">Marginalia</span>
+    </a>
+
+    <nav class="hidden items-center gap-1 text-sm md:flex">
+      {links.map((l) => (
+        <a
+          href={l.href}
+          class:list={[
+            'relative px-3 py-1.5 transition-colors',
+            l.active ? 'text-[var(--color-ink)]' : 'text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]',
+          ]}
+        >
+          {l.label}
+          {l.active && (
+            <span class="absolute inset-x-3 -bottom-1 h-[2px] rounded-full bg-[var(--color-accent)]"></span>
+          )}
+        </a>
+      ))}
+    </nav>
+
+    <div class="ml-auto hidden flex-1 items-center justify-end gap-3 md:flex">
+      <div class="w-full max-w-xs">
+        <SearchPalette client:idle />
+      </div>
+
+      {userPayload ? (
+        <>
+          <NotificationsBell client:idle variant="desktop" />
+          <UserMenu client:idle user={userPayload} />
+        </>
+      ) : (
+        <div class="flex items-center gap-2">
+          <a href="/login" class="rounded-full px-4 py-1.5 text-sm text-[var(--color-ink)] transition hover:bg-[var(--color-paper-raised)]">
+            Sign in
+          </a>
+          <a
+            href="/register"
+            class="group relative overflow-hidden rounded-full bg-[var(--color-ink)] px-4 py-1.5 text-sm font-medium text-[var(--color-paper)] transition-transform hover:-translate-y-px"
+          >
+            <span class="absolute inset-0 -translate-x-full bg-[var(--color-accent)] transition-transform duration-300 group-hover:translate-x-0"></span>
+            <span class="relative">Get started</span>
+          </a>
+        </div>
+      )}
+    </div>
+
+    <div class="ml-auto flex items-center gap-1 md:hidden">
+      <a href="/search" aria-label="Search" class="flex h-9 w-9 items-center justify-center rounded-full text-[var(--color-ink)] hover:bg-[var(--color-paper-raised)]">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+        </svg>
+      </a>
+      {userPayload && <NotificationsBell client:idle variant="mobile" />}
+      <MobileMenu client:idle user={userPayload} />
+    </div>
+  </div>
+</header>
+
+<script src="../../scripts/nav-scroll.ts"></script>

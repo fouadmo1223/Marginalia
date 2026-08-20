@@ -1,0 +1,235 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Source Serif 4', ui-serif, Georgia, serif;
+  --font-serif: 'Source Serif 4', ui-serif, Georgia, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* --- Core surfaces --- */
+  --color-bg: #f4f3ee;
+  --color-paper: #f4f3ee;
+  --color-surface: #ffffff;
+  --color-surface-raised: #fdfdfb;
+  --color-paper-raised: #e9e7de;
+
+  /* --- Text --- */
+  --color-ink: #191d1a;
+  --color-text-primary: #191d1a;
+  --color-ink-strong: #0a0c0a;
+  --color-ink-soft: #565f58;
+  --color-text-secondary: #565f58;
+  --color-text-muted: #949c8f;
+
+  /* --- Borders --- */
+  --color-line: #dcdcd0;
+  --color-border: #dcdcd0;
+  --color-border-strong: #bcbcac;
+
+  /* --- Brand palette (three accents, used deliberately, not decoratively) --- */
+  --color-primary: #1e3a4c;
+  --color-secondary: #3d5c3f;
+  --color-accent: #c1652f;
+  --color-accent-soft: #f1e0d1;
+  --color-accent2: #8a3a54;
+  --color-accent2-soft: #ecdbe1;
+
+  /* --- Semantic --- */
+  --color-success: #2f6b4f;
+  --color-success-soft: #dcecdf;
+  --color-warning: #92600f;
+  --color-warning-soft: #f4e3c4;
+  --color-error: #a1332a;
+  --color-error-soft: #f3dcd7;
+  --color-info: #2d5470;
+  --color-info-soft: #dbe7ee;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  :root:not([data-theme='light']) {
+    @media (prefers-color-scheme: dark) {
+      --color-bg: #10151a;
+      --color-paper: #10151a;
+      --color-surface: #171d22;
+      --color-surface-raised: #1d242a;
+      --color-paper-raised: #1d242a;
+
+      --color-ink: #e9ece7;
+      --color-ink-strong: #f7f8f5;
+      --color-text-primary: #e9ece7;
+      --color-ink-soft: #a3ada7;
+      --color-text-secondary: #a3ada7;
+      --color-text-muted: #63706b;
+
+      --color-line: #232b31;
+      --color-border: #232b31;
+      --color-border-strong: #384249;
+
+      --color-accent: #e2823f;
+      --color-accent-soft: #3a2d22;
+      --color-accent2: #c9648a;
+      --color-accent2-soft: #34232a;
+      --color-secondary: #6b9970;
+    }
+  }
+
+  :root[data-theme='dark'] {
+    --color-bg: #10151a;
+    --color-paper: #10151a;
+    --color-surface: #171d22;
+    --color-surface-raised: #1d242a;
+    --color-paper-raised: #1d242a;
+
+    --color-ink: #e9ece7;
+      --color-ink-strong: #f7f8f5;
+    --color-text-primary: #e9ece7;
+    --color-ink-soft: #a3ada7;
+    --color-text-secondary: #a3ada7;
+    --color-text-muted: #63706b;
+
+    --color-line: #232b31;
+    --color-border: #232b31;
+    --color-border-strong: #384249;
+
+    --color-accent: #e2823f;
+    --color-accent-soft: #3a2d22;
+    --color-accent2: #c9648a;
+    --color-accent2-soft: #34232a;
+    --color-secondary: #6b9970;
+  }
+
+  html, body {
+    /* Decorative glow/blur elements and horizontal scroll-snap strips throughout
+       the homepage intentionally sit outside their container's box (e.g. -right-20
+       blur circles) — clipped by their own section normally, but any one-off miss
+       (or a mid-animation scale/blur bleed) shouldn't be able to widen the page
+       itself and produce a stray horizontal scrollbar on mobile. */
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink-strong);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(ellipse 900px 500px at 12% -10%, color-mix(in srgb, var(--color-accent) 7%, transparent), transparent),
+      radial-gradient(ellipse 700px 500px at 100% 0%, color-mix(in srgb, var(--color-secondary) 6%, transparent), transparent);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .stagger-in {
+    animation: fade-in-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--stagger-i, 0) * 45ms);
+  }
+
+  /* table rows: transform on <tr> is unreliable across browsers and can push the
+     row outside its table's layout bounds mid-animation, causing a scrollbar to
+     flash in an overflow-x:auto wrapper — so rows fade in place, without translate. */
+  @keyframes fade-in-row {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  tr.stagger-in {
+    animation-name: fade-in-row;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stagger-in { animation: none; }
+  }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  ::selection {
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+  }
+
+  a {
+    text-underline-offset: 3px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Selective glass — used deliberately, not everywhere: floating nav, sticky
+     article actions, modals, notification panels. Never whole-page. */
+  .glass {
+    background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    border: 1px solid color-mix(in srgb, var(--color-border-strong) 60%, transparent);
+  }
+
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .text-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    line-height: 0.98;
+  }
+
+  .prose-article {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    line-height: 1.8;
+    color: var(--color-ink-strong);
+  }
+  .prose-article p { margin: 1.3em 0; }
+  .prose-article h2 { font-size: 1.7rem; margin: 2em 0 0.6em; letter-spacing: -0.01em; }
+  .prose-article h3 { font-size: 1.35rem; margin: 1.8em 0 0.5em; }
+  .prose-article img { border-radius: 3px; margin: 2em 0; }
+  .prose-article blockquote {
+    border-left: 3px solid var(--color-accent);
+    padding-left: 1.2em;
+    font-style: italic;
+    color: var(--color-ink-soft);
+  }
+  .prose-article a { color: var(--color-accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--color-accent) 40%, transparent); }
+  .prose-article ul, .prose-article ol { margin: 1.1em 0; padding-left: 1.4em; }
+  .prose-article li { margin: 0.4em 0; }
+  .prose-article code { background: var(--color-paper-raised); padding: 0.15em 0.4em; border-radius: 3px; font-size: 0.9em; }
+}

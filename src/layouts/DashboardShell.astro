@@ -1,0 +1,49 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  active: string;
+}
+const { title, active } = Astro.props;
+
+const nav = [
+  { key: 'overview', label: 'Overview', href: '/dashboard' },
+  { key: 'blogs', label: 'My Blogs', href: '/dashboard/blogs' },
+  { key: 'create', label: 'Create Blog', href: '/dashboard/create' },
+  { key: 'comments', label: 'Comments', href: '/dashboard/comments' },
+  { key: 'likes', label: 'Likes', href: '/dashboard/likes' },
+  { key: 'notifications', label: 'Notifications', href: '/dashboard/notifications' },
+  { key: 'following', label: 'Following', href: '/dashboard/following' },
+  { key: 'followers', label: 'Followers', href: '/dashboard/followers' },
+  { key: 'blocked', label: 'Blocked Users', href: '/dashboard/blocked' },
+  { key: 'settings', label: 'Settings', href: '/dashboard/settings' },
+];
+---
+
+<BaseLayout title={title} noIndex>
+  <div class="mx-auto max-w-6xl px-5 py-8 sm:px-8">
+    <div class="grid gap-8 lg:grid-cols-[200px_1fr]">
+      <aside class="lg:sticky lg:top-20 lg:self-start">
+        <nav class="flex gap-1 overflow-x-auto pb-2 text-sm lg:flex-col lg:overflow-visible lg:pb-0">
+          {nav.map((item) => (
+            <a
+              href={item.href}
+              class:list={[
+                'whitespace-nowrap rounded-lg px-3 py-2 lg:whitespace-normal',
+                item.key === active
+                  ? 'bg-[var(--color-ink)] text-[var(--color-paper)]'
+                  : 'text-[var(--color-ink-soft)] hover:bg-[var(--color-paper-raised)] hover:text-[var(--color-ink)]',
+              ]}
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </aside>
+      <div class="min-w-0">
+        <slot />
+      </div>
+    </div>
+  </div>
+</BaseLayout>
