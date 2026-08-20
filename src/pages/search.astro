@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SearchResults from '../components/search/SearchResults';
+
+const q = Astro.url.searchParams.get('q') ?? '';
+---
+
+<BaseLayout title={q ? `“${q}”` : 'Search'} noIndex>
+  <div class="mx-auto max-w-2xl px-5 py-14 sm:px-8 sm:py-16">
+    <p class="eyebrow mb-2">Search the archive</p>
+    <SearchResults client:load initialQuery={q} />
+  </div>
+</BaseLayout>
