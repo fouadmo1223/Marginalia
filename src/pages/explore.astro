@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FilterableBlogGrid from '../components/blog/FilterableBlogGrid.astro';
+import { connectToDatabase } from '../lib/db';
+import { Blog } from '../models/Blog';
+import { Category } from '../models/Category';
+import { Tag } from '../models/Tag';
+import { getExcludedUserIds } from '../lib/social';
+
+await connectToDatabase();
+const user = Astro.locals.user;
+const excluded = await getExcludedUserIds(user ? String(user._id) : null);
+
+const filter: Record<string, unknown> = { status: 'published' };
+if (excluded.length) filter.author = { $nin: excluded };
+
+const [blogs, categories, tags] = await Promise.all([
+  Blog.find(filter)
+    .sort({ publishedAt: -1 })
+    .limit(60)
+    .populate('author', 'name')
+    .populate('categories', 'name slug')
+    .select('title slug coverImage likesCount publishedAt createdAt author categories')
+    .lean(),
+  Category.find().sort({ order: 1 }).limit(12).lean(),
+  Tag.find().sort({ usageCount: -1 }).limit(16).lean(),
+]);
+
+const usedCategorySlugs = new Set<string>();
+for (const b of blogs) for (const c of b.categories as any[]) usedCategorySlugs.add(c.slug);
+const filterCategories = categories.filter((c) => usedCategorySlugs.has(c.slug)).map((c) => ({ name: c.name, slug: c.slug }));
+---
+
+<BaseLayout title="Explore" description="Discover popular writing, categories, and topics.">
+  <div class="mx-auto max-w-5xl px-5 py-10 sm:px-8">
+    <h1 class="font-serif text-3xl font-semibold text-[var(--color-ink)]">Explore</h1>
+
+    {tags.length > 0 && (
+      <div class="mt-4 flex flex-wrap gap-2">
+        {tags.map((t) => (
+          <a href={`/search?type=blogs&tag=${t.slug}`} class="rounded-full bg-[var(--color-paper-raised)] px-3 py-1 text-xs text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
+            #{t.name}
+          </a>
+        ))}
+      </div>
+    )}
+
+    {blogs.length === 0 ? (
+      <div class="mt-10 rounded-lg border border-dashed border-[var(--color-line)] px-6 py-14 text-center">
+        <p class="text-sm text-[var(--color-ink-soft)]">No published stories yet.</p>
+      </div>
+    ) : (
+      <div class="mt-10">
+        <FilterableBlogGrid blogs={blogs as any} categories={filterCategories} />
+      </div>
+    )}
+  </div>
+
+  <script src="../scripts/scroll-reveal.ts"></script>
+</BaseLayout>

@@ -1,0 +1,201 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroSection from '../components/home/HeroSection.astro';
+import FeaturedPost from '../components/home/FeaturedPost.astro';
+import StatsBand from '../components/home/StatsBand.astro';
+import StackedCards from '../components/home/StackedCards.astro';
+import WhyMarginalia from '../components/home/WhyMarginalia.astro';
+import CategoryShowcase from '../components/home/CategoryShowcase.astro';
+import HorizontalGallery from '../components/home/HorizontalGallery.astro';
+import WritersMarquee from '../components/home/WritersMarquee.astro';
+import QuotesCarousel from '../components/home/QuotesCarousel.astro';
+import CommunityPulse from '../components/home/CommunityPulse.astro';
+import WritersToFollow from '../components/home/WritersToFollow.astro';
+import CTABand from '../components/home/CTABand.astro';
+import { connectToDatabase } from '../lib/db';
+import { Blog } from '../models/Blog';
+import { User } from '../models/User';
+import { Category } from '../models/Category';
+import { Comment } from '../models/Comment';
+import { getExcludedUserIds, getFollowingIds } from '../lib/social';
+import { getCuratedBlogIds, sortByCuratedOrder } from '../lib/home-curation';
+
+const user = Astro.locals.user;
+
+await connectToDatabase();
+
+const excluded = await getExcludedUserIds(user ? String(user._id) : null);
+const excludeAuthorFilter = excluded.length ? { $nin: excluded } : undefined;
+
+// --- Discovery sections (shown to everyone, above the personalized feed) ---
+// Each of featured/trending/gallery prefers an admin's curated pick (via
+// /admin/homepage) and falls back to an automatic algorithm when nothing is pinned.
+
+const curatedFeaturedIds = await getCuratedBlogIds('featured');
+let featured = null as Awaited<ReturnType<typeof Blog.findOne>> | any;
+if (curatedFeaturedIds.length) {
+  featured = await Blog.findOne({
+    _id: curatedFeaturedIds[0],
+    status: 'published',
+    ...(excludeAuthorFilter ? { author: excludeAuthorFilter } : {}),
+  })
+    .populate('author', 'username name avatarUrl')
+    .lean();
+}
+if (!featured) {
+  featured = await Blog.findOne({
+    status: 'published',
+    ...(excludeAuthorFilter ? { author: excludeAuthorFilter } : {}),
+  })
+    .sort({ likesCount: -1, viewsCount: -1 })
+    .populate('author', 'username name avatarUrl')
+    .lean();
+}
+
+const curatedTrendingIds = await getCuratedBlogIds('trending');
+let trending: any[] = [];
+if (curatedTrendingIds.length) {
+  const curatedTrending = await Blog.find({
+    _id: { $in: curatedTrendingIds },
+    status: 'published',
+    ...(excludeAuthorFilter ? { author: excludeAuthorFilter } : {}),
+  })
+    .populate('author', 'username name avatarUrl')
+    .lean();
+  trending = sortByCuratedOrder(curatedTrending, curatedTrendingIds);
+}
+if (trending.length === 0) {
+  trending = await Blog.find({
+    status: 'published',
+    ...(featured ? { _id: { $ne: featured._id } } : {}),
+    ...(excludeAuthorFilter ? { author: excludeAuthorFilter } : {}),
+  })
+    .sort({ likesCount: -1, publishedAt: -1 })
+    .limit(4)
+    .populate('author', 'username name avatarUrl')
+    .lean();
+}
+
+const categoriesRaw = await Category.find().sort({ order: 1, name: 1 }).limit(8).lean();
+const categoryCounts = await Blog.aggregate([
+  { $match: { status: 'published' } },
+  { $unwind: '$categories' },
+  { $group: { _id: '$categories', count: { $sum: 1 } } },
+]);
+const countByCategory = new Map(categoryCounts.map((c) => [String(c._id), c.count]));
+const categories = categoriesRaw
+  .map((c) => ({ name: c.name, slug: c.slug, count: countByCategory.get(String(c._id)) ?? 0 }))
+  .filter((c) => c.count > 0);
+
+const writerFilter: Record<string, unknown> = { status: 'active', followersCount: { $gt: 0 } };
+if (user) writerFilter._id = { $ne: user._id };
+if (excludeAuthorFilter) writerFilter._id = { ...(writerFilter._id as object), ...excludeAuthorFilter };
+const writers = await User.find(writerFilter)
+  .sort({ followersCount: -1 })
+  .limit(3)
+  .select('username name avatarUrl bio followersCount')
+  .lean();
+
+const followingIds = user ? await getFollowingIds(String(user._id)) : [];
+
+const curatedGalleryIds = await getCuratedBlogIds('gallery');
+let gallery: any[] = [];
+if (curatedGalleryIds.length) {
+  const curatedGallery = await Blog.find({
+    _id: { $in: curatedGalleryIds },
+    status: 'published',
+    coverImage: { $ne: null },
+    ...(excludeAuthorFilter ? { author: excludeAuthorFilter } : {}),
+  })
+    .populate('author', 'name')
+    .select('title slug coverImage author')
+    .lean();
+  gallery = sortByCuratedOrder(curatedGallery, curatedGalleryIds);
+}
+if (gallery.length === 0) {
+  const galleryExcludeIds = [featured?._id, ...trending.map((b: any) => b._id)].filter(Boolean);
+  gallery = await Blog.find({
+    status: 'published',
+    coverImage: { $ne: null },
+    _id: { $nin: galleryExcludeIds },
+    ...(excludeAuthorFilter ? { author: excludeAuthorFilter } : {}),
+  })
+    .sort({ publishedAt: -1 })
+    .limit(16)
+    .populate('author', 'name')
+    .select('title slug coverImage author')
+    .lean();
+}
+
+const [totalWriters, totalStories, likesAgg, totalComments] = await Promise.all([
+  User.countDocuments({ status: 'active' }),
+  Blog.countDocuments({ status: 'published' }),
+  Blog.aggregate([{ $match: { status: 'published' } }, { $group: { _id: null, total: { $sum: '$likesCount' } } }]),
+  Comment.countDocuments({ deleted: false }),
+]);
+const stats = [
+  { label: 'Writers', value: totalWriters },
+  { label: 'Stories published', value: totalStories },
+  { label: 'Likes given', value: likesAgg[0]?.total ?? 0 },
+  { label: 'Comments', value: totalComments },
+];
+
+const marqueeWriterFilter: Record<string, unknown> = { status: 'active' };
+if (excludeAuthorFilter) marqueeWriterFilter._id = excludeAuthorFilter;
+const marqueeWriters = await User.find(marqueeWriterFilter)
+  .sort({ createdAt: 1 })
+  .limit(12)
+  .select('username name avatarUrl')
+  .lean();
+
+const quoteBlogs = await Blog.find({
+  status: 'published',
+  excerpt: { $ne: '' },
+  ...(excludeAuthorFilter ? { author: excludeAuthorFilter } : {}),
+})
+  .sort({ likesCount: -1 })
+  .limit(5)
+  .populate('author', 'name')
+  .select('title slug excerpt author')
+  .lean();
+
+const recentComments = await Comment.find({ deleted: false })
+  .sort({ createdAt: -1 })
+  .limit(6)
+  .populate('author', 'username name avatarUrl')
+  .populate('blog', 'title slug')
+  .lean();
+const visibleComments = excluded.length
+  ? recentComments.filter((c: any) => !excluded.includes(String(c.author?._id)))
+  : recentComments;
+
+---
+
+<BaseLayout title="Marginalia" description="A place for writers to publish, discuss, and discover ideas.">
+  {!user && <HeroSection />}
+
+  {featured && <FeaturedPost blog={featured as any} />}
+
+  <StatsBand stats={stats} />
+
+  <StackedCards blogs={trending as any} />
+
+  <WhyMarginalia />
+
+  <CategoryShowcase categories={categories} />
+
+  <HorizontalGallery blogs={gallery as any} />
+
+  <WritersMarquee writers={marqueeWriters as any} />
+
+  <QuotesCarousel quotes={quoteBlogs as any} />
+
+  <CommunityPulse comments={visibleComments as any} />
+
+  <WritersToFollow writers={writers as any} followingIds={followingIds} isAuthenticated={Boolean(user)} />
+
+  <CTABand isAuthenticated={Boolean(user)} />
+
+  <script src="../scripts/scroll-reveal.ts"></script>
+  <script src="../scripts/parallax.ts"></script>
+</BaseLayout>

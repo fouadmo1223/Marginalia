@@ -1,0 +1,41 @@
+---
+interface Props {
+  blogs: {
+    title: string;
+    slug: string;
+    excerpt: string;
+    coverImage: { url: string } | null;
+    likesCount: number;
+    author: { username: string; name: string; avatarUrl: string | null } | null;
+  }[];
+}
+const { blogs } = Astro.props;
+---
+
+{blogs.length > 0 && (
+  <section class="border-b border-[var(--color-line)] bg-[var(--color-paper-raised)]/40">
+    <div class="mx-auto max-w-5xl px-5 py-14 sm:px-8">
+      <div class="mb-8 flex items-end justify-between">
+        <h2 class="font-serif text-2xl font-semibold text-[var(--color-ink)]">Trending this week</h2>
+        <a href="/?tab=popular" class="text-sm text-[var(--color-accent)] hover:underline">See all</a>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {blogs.map((blog) => (
+          <a href={`/blog/${blog.slug}`} data-reveal class="group block">
+            <div class="overflow-hidden rounded-lg bg-[var(--color-paper-raised)]">
+              {blog.coverImage ? (
+                <img src={blog.coverImage.url} alt="" loading="lazy" class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              ) : (
+                <div class="aspect-[4/3] w-full bg-[var(--color-paper-raised)]" />
+              )}
+            </div>
+            <h3 class="mt-3 font-serif text-base font-semibold leading-snug text-[var(--color-ink)] transition group-hover:text-[var(--color-accent)]">
+              {blog.title}
+            </h3>
+            {blog.author && <p class="mt-1 text-xs text-[var(--color-ink-soft)]">{blog.author.name} &middot; {blog.likesCount} likes</p>}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+)}

@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FeedSection from '../components/home/FeedSection';
+import { connectToDatabase } from '../lib/db';
+import { Blog } from '../models/Blog';
+import { getExcludedUserIds, getFollowingIds } from '../lib/social';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect(`/login?next=${encodeURIComponent('/feed')}`);
+
+await connectToDatabase();
+
+const excluded = await getExcludedUserIds(String(user._id));
+const followingIds = await getFollowingIds(String(user._id));
+
+let blogs: any[] = [];
+let emptyFollowing = followingIds.length === 0;
+
+if (!emptyFollowing) {
+  const filter: Record<string, unknown> = {
+    status: 'published',
+    author: excluded.length ? { $in: followingIds.filter((id) => !excluded.includes(id)) } : { $in: followingIds },
+  };
+  blogs = await Blog.find(filter).sort({ publishedAt: -1 }).limit(20).populate('author', 'username name avatarUrl').lean();
+}
+---
+
+<BaseLayout title="Feed" description="New blogs from the writers you follow.">
+  <div class="mx-auto max-w-3xl px-5 py-12 sm:px-8">
+    <p class="eyebrow mb-2">Your feed</p>
+    <h1 class="mb-8 font-serif text-2xl font-semibold text-[var(--color-ink-strong)]">Blogs from people you follow</h1>
+    <FeedSection
+      client:load
+      initialBlogs={blogs as any}
+      initialTab="following"
+      initialEmptyFollowing={emptyFollowing}
+      isAuthenticated={true}
+      showTabs={false}
+    />
+  </div>
+</BaseLayout>

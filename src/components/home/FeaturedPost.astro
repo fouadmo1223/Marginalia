@@ -1,0 +1,59 @@
+---
+interface Props {
+  blog: {
+    title: string;
+    slug: string;
+    excerpt: string;
+    coverImage: { url: string } | null;
+    likesCount: number;
+    commentsCount: number;
+    publishedAt: string | Date | null;
+    author: { username: string; name: string; avatarUrl: string | null } | null;
+  };
+}
+const { blog } = Astro.props;
+const date = blog.publishedAt
+  ? new Date(blog.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  : '';
+---
+
+<section data-parallax-scope class="border-b border-[var(--color-line)] bg-white">
+  <div class="mx-auto max-w-5xl px-5 py-14 sm:px-8">
+    <p class="mb-5 text-xs font-semibold uppercase tracking-wide text-[var(--color-accent)]">Featured story</p>
+    <a href={`/blog/${blog.slug}`} data-featured-link class="group grid gap-8 md:grid-cols-2 md:items-center">
+      {blog.coverImage && (
+        <div data-reveal-image class="relative aspect-[4/3] w-full overflow-hidden rounded-lg">
+          <img
+            src={blog.coverImage.url}
+            alt=""
+            data-parallax="-0.18"
+            data-featured-image
+            class="absolute inset-x-0 -top-[15%] h-[130%] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+        </div>
+      )}
+      <div class={blog.coverImage ? '' : 'md:col-span-2'}>
+        <h2 class="font-serif text-3xl font-semibold leading-tight text-[var(--color-ink)] transition group-hover:text-[var(--color-accent)] sm:text-4xl">
+          {blog.title}
+        </h2>
+        {blog.excerpt && <p class="mt-4 text-lg text-[var(--color-ink-soft)]">{blog.excerpt}</p>}
+        {blog.author && (
+          <div class="mt-6 flex items-center gap-3 text-sm text-[var(--color-ink-soft)]">
+            <span class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[var(--color-paper-raised)] text-xs font-medium">
+              {blog.author.avatarUrl ? <img src={blog.author.avatarUrl} alt="" class="h-full w-full object-cover" /> : blog.author.name.charAt(0).toUpperCase()}
+            </span>
+            <span>{blog.author.name}</span>
+            <span aria-hidden="true">&middot;</span>
+            <span>{date}</span>
+          </div>
+        )}
+        <div class="mt-4 flex gap-4 text-xs text-[var(--color-ink-soft)]">
+          <span>{blog.likesCount} likes</span>
+          <span>{blog.commentsCount} comments</span>
+        </div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<script src="../../scripts/featured-transition.ts"></script>

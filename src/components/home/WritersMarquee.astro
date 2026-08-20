@@ -1,0 +1,31 @@
+---
+interface Props {
+  writers: { username: string; name: string; avatarUrl: string | null }[];
+}
+const { writers } = Astro.props;
+const loop = [...writers, ...writers, ...writers];
+---
+
+{writers.length > 0 && (
+  <section class="border-b border-[var(--color-line)] bg-white py-10">
+    <p class="mx-auto mb-6 max-w-5xl px-5 text-center text-xs font-semibold uppercase tracking-widest text-[var(--color-ink-soft)] sm:px-8">
+      Join writers already publishing on Marginalia
+    </p>
+    <div class="relative overflow-hidden">
+      <div class="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent"></div>
+      <div class="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent"></div>
+      <div data-marquee class="flex w-max gap-10 px-5">
+        {loop.map((w) => (
+          <a href={`/profile/${w.username}`} class="flex shrink-0 items-center gap-2.5 text-sm text-[var(--color-ink-soft)] transition hover:text-[var(--color-ink)]">
+            <span class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[var(--color-paper-raised)] text-xs font-medium">
+              {w.avatarUrl ? <img src={w.avatarUrl} alt="" class="h-full w-full object-cover" /> : w.name.charAt(0).toUpperCase()}
+            </span>
+            {w.name}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+<script src="../../scripts/marquee.ts"></script>

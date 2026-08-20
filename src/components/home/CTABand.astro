@@ -1,0 +1,29 @@
+---
+interface Props {
+  isAuthenticated: boolean;
+}
+const { isAuthenticated } = Astro.props;
+---
+
+<section data-parallax-scope class="relative overflow-hidden bg-[var(--color-ink)]">
+  <div data-parallax="0.2" class="pointer-events-none absolute -left-10 top-0 h-72 w-72 rounded-full bg-[var(--color-accent)]/20 blur-3xl" aria-hidden="true"></div>
+  <div data-parallax="-0.2" class="pointer-events-none absolute -right-10 bottom-0 h-72 w-72 rounded-full bg-white/10 blur-3xl" aria-hidden="true"></div>
+
+  <div class="relative mx-auto max-w-2xl px-5 py-24 text-center sm:px-8">
+    <h2 data-reveal class="font-serif text-3xl font-semibold text-[var(--color-paper)] sm:text-4xl">
+      {isAuthenticated ? 'Your next story is waiting to be written.' : 'Your words deserve a real audience.'}
+    </h2>
+    <p data-reveal class="mx-auto mt-4 max-w-md text-white/60">
+      {isAuthenticated
+        ? 'Pick up where you left off, or start something new.'
+        : 'Join a platform built for writers first — no ads between your paragraphs, no algorithm deciding who reads you.'}
+    </p>
+    <a
+      data-reveal
+      href={isAuthenticated ? '/dashboard/create' : '/register'}
+      class="mt-8 inline-block rounded-full bg-[var(--color-paper)] px-7 py-3 text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-accent)] hover:text-white"
+    >
+      {isAuthenticated ? 'Start writing' : 'Create your free account'}
+    </a>
+  </div>
+</section>

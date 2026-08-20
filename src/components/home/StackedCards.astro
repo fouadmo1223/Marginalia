@@ -1,0 +1,54 @@
+---
+interface Props {
+  blogs: {
+    title: string;
+    slug: string;
+    excerpt: string;
+    coverImage: { url: string } | null;
+    likesCount: number;
+    author: { username: string; name: string; avatarUrl: string | null } | null;
+  }[];
+}
+const { blogs } = Astro.props;
+---
+
+{blogs.length > 0 && (
+  <section class="border-b border-[var(--color-line)] bg-[var(--color-ink)]">
+    <div class="mx-auto max-w-3xl px-5 py-20 sm:px-8">
+      <div class="mb-12 text-center">
+        <p class="mb-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-accent)]">Trending this week</p>
+        <h2 class="font-serif text-3xl font-semibold text-[var(--color-paper)] sm:text-4xl">Stories readers can't stop sharing</h2>
+      </div>
+
+      <div data-stack class="relative">
+        {blogs.map((blog, i) => (
+          <div
+            data-stack-card
+            class="sticky mb-6 rounded-2xl border border-white/10 bg-[var(--color-paper)] p-6 shadow-2xl sm:p-8"
+            style={`top: ${5.5 + i * 1.1}rem; z-index: ${i + 1};`}
+          >
+            <a href={`/blog/${blog.slug}`} class="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center">
+              <div class="min-w-0">
+                <p class="mb-2 text-xs font-semibold text-[var(--color-accent)]">0{i + 1}</p>
+                <h3 class="font-serif text-2xl font-semibold leading-snug text-[var(--color-ink)] sm:text-[1.75rem]">
+                  {blog.title}
+                </h3>
+                {blog.excerpt && <p class="mt-2 line-clamp-2 text-sm text-[var(--color-ink-soft)]">{blog.excerpt}</p>}
+                <div class="mt-4 flex items-center gap-3 text-xs text-[var(--color-ink-soft)]">
+                  {blog.author && <span>{blog.author.name}</span>}
+                  <span aria-hidden="true">&middot;</span>
+                  <span>{blog.likesCount} likes</span>
+                </div>
+              </div>
+              {blog.coverImage && (
+                <img src={blog.coverImage.url} alt="" loading="lazy" class="h-32 w-full rounded-lg object-cover sm:h-28 sm:w-44" />
+              )}
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+<script src="../../scripts/stacked-cards.ts"></script>

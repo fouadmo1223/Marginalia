@@ -1,0 +1,66 @@
+---
+const steps = [
+  {
+    n: '01',
+    title: 'Publish without friction',
+    body: 'A distraction-free editor, drafts that autosave to the database, and one click to go from draft to published.',
+    visual: 'from-[#1e3a4c] to-[#0f1e28]',
+    image: 'https://picsum.photos/seed/marginalia-step-write/1200/900',
+  },
+  {
+    n: '02',
+    title: 'Build real relationships',
+    body: 'Follow the writers whose thinking you admire, and block the ones you don’t. Your feed is yours to shape.',
+    visual: 'from-[#3d5c3f] to-[#1c2b1d]',
+    image: 'https://picsum.photos/seed/marginalia-step-connect/1200/900',
+  },
+  {
+    n: '03',
+    title: 'Own your audience',
+    body: 'No algorithm decides who sees your writing. People who follow you see everything you publish, in order.',
+    visual: 'from-[#8a3a54] to-[#3a1826]',
+    image: 'https://picsum.photos/seed/marginalia-step-audience/1200/900',
+  },
+];
+---
+
+<section data-pin-story class="relative border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+  <div class="mx-auto max-w-6xl px-5 sm:px-8">
+    <div class="grid gap-10 lg:grid-cols-2 lg:gap-16">
+      <div data-pin-story-sticky class="py-16 lg:sticky lg:top-24 lg:h-fit lg:py-24">
+        <p class="eyebrow mb-4">How it works</p>
+        <h2 class="text-display text-4xl font-semibold text-[var(--color-ink)] sm:text-5xl">
+          Three decisions, made once.
+        </h2>
+        <p class="mt-5 max-w-sm text-[var(--color-ink-soft)]">
+          Everything else about Marginalia follows from these — no algorithm, no ads between paragraphs, no
+          audience you don't own.
+        </p>
+
+        <div class="mt-10 flex gap-2">
+          {steps.map((s, i) => (
+            <span data-pin-story-dot={i} class="h-1 w-8 rounded-full bg-[var(--color-border)] transition-colors duration-300"></span>
+          ))}
+        </div>
+      </div>
+
+      <div class="py-8 lg:py-24">
+        {steps.map((s, i) => (
+          <div data-pin-story-step={i} class="flex min-h-[70vh] flex-col justify-center gap-6 lg:min-h-[80vh]">
+            <div class="relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-[var(--color-paper-raised)]">
+              <img src={s.image} alt="" loading="lazy" class="absolute inset-0 h-full w-full object-cover" />
+              <div class={`absolute inset-0 bg-gradient-to-br ${s.visual} mix-blend-multiply opacity-70`}></div>
+              <span class="absolute left-6 top-6 font-serif text-6xl font-semibold text-white/70 [text-shadow:0_2px_12px_rgba(0,0,0,0.35)]">{s.n}</span>
+            </div>
+            <div>
+              <h3 class="font-serif text-2xl font-semibold text-[var(--color-ink)]">{s.title}</h3>
+              <p class="mt-2 max-w-md text-[var(--color-ink-soft)]">{s.body}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="../../scripts/pinned-story.ts"></script>

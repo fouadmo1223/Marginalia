@@ -1,0 +1,41 @@
+---
+import FollowButton from '../profile/FollowButton';
+
+interface Props {
+  writers: {
+    _id: unknown;
+    username: string;
+    name: string;
+    avatarUrl: string | null;
+    bio: string;
+    followersCount: number;
+  }[];
+  followingIds: string[];
+  isAuthenticated: boolean;
+}
+const { writers, followingIds, isAuthenticated } = Astro.props;
+---
+
+{writers.length > 0 && (
+  <section class="border-b border-[var(--color-line)] bg-[var(--color-paper-raised)]/40">
+    <div class="mx-auto max-w-5xl px-5 py-14 sm:px-8">
+      <h2 class="mb-6 font-serif text-2xl font-semibold text-[var(--color-ink)]">Writers to follow</h2>
+      <div data-reveal-strip class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {writers.map((w) => (
+          <div class="flex items-center gap-3 rounded-lg border border-[var(--color-line)] bg-white p-4">
+            <a href={`/profile/${w.username}`} class="flex min-w-0 flex-1 items-center gap-3">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-paper-raised)] text-sm font-medium">
+                {w.avatarUrl ? <img src={w.avatarUrl} alt="" class="h-full w-full object-cover" /> : w.name.charAt(0).toUpperCase()}
+              </span>
+              <span class="min-w-0">
+                <span class="block truncate text-sm font-medium text-[var(--color-ink)]">{w.name}</span>
+                <span class="block text-xs text-[var(--color-ink-soft)]">{w.followersCount} followers</span>
+              </span>
+            </a>
+            <FollowButton client:visible userId={String(w._id)} initialFollowing={followingIds.includes(String(w._id))} isAuthenticated={isAuthenticated} />
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}

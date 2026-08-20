@@ -1,0 +1,83 @@
+---
+interface Props {
+  blogs: {
+    title: string;
+    slug: string;
+    coverImage: { url: string } | null;
+    author: { name: string } | null;
+  }[];
+}
+const { blogs } = Astro.props;
+const items = blogs.filter((b) => b.coverImage);
+---
+
+{items.length >= 3 && (
+  <section id="horiz-gallery" class="border-b border-[var(--color-line)] bg-white">
+    <div class="mx-auto max-w-5xl px-5 pt-14 sm:px-8">
+      <div data-reveal class="mb-6 flex items-end justify-between gap-4">
+        <div>
+          <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--color-accent)]">More to read</p>
+          <h2 class="font-serif text-2xl font-semibold text-[var(--color-ink)]">Scroll through the archive</h2>
+        </div>
+        <div class="flex shrink-0 gap-2.5">
+          <button
+            type="button"
+            data-scroll-prev
+            aria-label="Scroll left"
+            class="group flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-ink)] text-[var(--color-paper)] shadow-md transition-all duration-200 hover:scale-105 hover:bg-[var(--color-accent)] disabled:pointer-events-none disabled:opacity-25 disabled:hover:scale-100"
+          >
+            <svg class="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <button
+            type="button"
+            data-scroll-next
+            aria-label="Scroll right"
+            class="group flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-ink)] text-[var(--color-paper)] shadow-md transition-all duration-200 hover:scale-105 hover:bg-[var(--color-accent)] disabled:pointer-events-none disabled:opacity-25 disabled:hover:scale-100"
+          >
+            <svg class="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      data-scroll-strip
+      class="flex snap-x snap-proximity gap-6 overflow-x-auto px-5 pb-14 sm:px-8"
+      style="scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; touch-action: pan-x;"
+    >
+      {items.map((blog, i) => (
+        <a href={`/blog/${blog.slug}`} data-reveal style={`transition-delay: ${Math.min(i, 4) * 60}ms`} class="group block w-[78vw] shrink-0 snap-start sm:w-[38vw] lg:w-[26vw]">
+          <div class="relative overflow-hidden rounded-lg bg-[var(--color-paper-raised)]">
+            <img
+              src={blog.coverImage!.url}
+              alt=""
+              loading="lazy"
+              class="aspect-[3/4] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/0 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+            <svg class="absolute bottom-3 right-3 h-7 w-7 translate-y-2 text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </div>
+          <h3 class="mt-3 font-serif text-lg font-semibold leading-snug text-[var(--color-ink)] transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[var(--color-accent)]">
+            {blog.title}
+          </h3>
+          {blog.author && <p class="mt-1 text-xs text-[var(--color-ink-soft)]">{blog.author.name}</p>}
+        </a>
+      ))}
+    </div>
+  </section>
+)}
+
+<style>
+  [data-scroll-strip]::-webkit-scrollbar {
+    display: none;
+  }
+  [data-scroll-strip] img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+</style>
+
+<script src="../../scripts/horizontal-gallery.ts"></script>
+<script src="../../scripts/scroll-reveal.ts"></script>

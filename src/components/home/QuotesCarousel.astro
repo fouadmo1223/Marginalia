@@ -1,0 +1,33 @@
+---
+interface Props {
+  quotes: { excerpt: string; title: string; slug: string; author: { name: string } | null }[];
+}
+const { quotes } = Astro.props;
+---
+
+{quotes.length > 0 && (
+  <section class="border-b border-[var(--color-line)] bg-[var(--color-ink)]">
+    <div class="mx-auto max-w-3xl px-5 py-20 text-center sm:px-8">
+      <div data-carousel class="relative min-h-[220px]">
+        {quotes.map((q, i) => (
+          <a
+            href={`/blog/${q.slug}`}
+            data-carousel-slide
+            style={i === 0 ? '' : 'opacity: 0;'}
+            class="absolute inset-0 flex flex-col items-center justify-center"
+          >
+            <p class="font-serif text-2xl font-medium leading-snug text-[var(--color-paper)] sm:text-3xl">&ldquo;{q.excerpt}&rdquo;</p>
+            <p class="mt-6 text-sm text-white/50">{q.author?.name} &middot; {q.title}</p>
+          </a>
+        ))}
+      </div>
+      <div data-carousel-dots class="mt-8 flex justify-center gap-2">
+        {quotes.map((_, i) => (
+          <button data-carousel-dot aria-label={`Show quote ${i + 1}`} class:list={['h-1.5 w-6 rounded-full transition-colors', i === 0 ? 'bg-[var(--color-accent)]' : 'bg-white/20']}></button>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+<script src="../../scripts/carousel.ts"></script>

@@ -1,0 +1,64 @@
+---
+interface Props {
+  categories: { name: string; slug: string; count: number }[];
+}
+const { categories } = Astro.props;
+
+const tints = [
+  { from: '#2b2440', to: '#4a2f3d' },
+  { from: '#1f3a3a', to: '#2f4f4f' },
+  { from: '#3a2a1f', to: '#4f382f' },
+  { from: '#242c40', to: '#33415f' },
+];
+---
+
+{categories.length > 0 && (
+  <section class="border-b border-[var(--color-line)] bg-white">
+    <div class="mx-auto max-w-5xl px-5 py-16 sm:px-8">
+      <p data-reveal class="eyebrow mb-2">Browse</p>
+      <h2 data-reveal class="mb-8 font-serif text-2xl font-semibold text-[var(--color-ink)]">Explore by category</h2>
+      <div class="grid gap-5 sm:grid-cols-2">
+        {categories.map((c, i) => {
+          const tint = tints[i % tints.length];
+          return (
+            <a
+              href={`/search?type=blogs&category=${c.slug}`}
+              data-category-tile
+              class="group relative flex h-56 items-end overflow-hidden rounded-xl transition-shadow duration-300 hover:shadow-2xl"
+            >
+              <div class="absolute inset-0 overflow-hidden">
+                <img
+                  data-category-image
+                  src={`https://picsum.photos/seed/marginalia-cat-${c.slug}/900/700`}
+                  alt=""
+                  loading="lazy"
+                  class="h-[120%] w-full scale-110 object-cover will-change-transform"
+                />
+              </div>
+              <div
+                class="absolute inset-0 opacity-80 mix-blend-multiply transition-opacity duration-300 group-hover:opacity-60"
+                style={`background: linear-gradient(160deg, ${tint.from}, ${tint.to});`}
+              ></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+
+              <div class="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" aria-hidden="true"></div>
+
+              <div class="relative p-6 transition-transform duration-300 group-hover:-translate-y-1">
+                <p class="font-serif text-2xl font-semibold text-white">{c.name}</p>
+                <p class="mt-1 flex items-center gap-1.5 text-sm text-white/60">
+                  {c.count} {c.count === 1 ? 'story' : 'stories'}
+                  <svg class="h-3.5 w-3.5 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </p>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+)}
+
+<script src="../../scripts/category-showcase.ts"></script>
+<script src="../../scripts/scroll-reveal.ts"></script>
