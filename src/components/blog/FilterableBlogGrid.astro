@@ -1,0 +1,125 @@
+---
+interface Props {
+  blogs: {
+    _id: unknown;
+    title: string;
+    slug: string;
+    coverImage: { url: string } | null;
+    likesCount: number;
+    publishedAt: string | Date | null;
+    createdAt: string | Date;
+    author: { name: string } | null;
+    categories: { name: string; slug: string }[];
+  }[];
+  categories: { name: string; slug: string }[];
+}
+const { blogs, categories } = Astro.props;
+
+function timestamp(blog: (typeof blogs)[number]) {
+  return new Date(blog.publishedAt ?? blog.createdAt).getTime();
+}
+---
+
+<div data-filter-root>
+  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex flex-wrap gap-2" role="group" aria-label="Filter by category">
+      <label class="filter-pill">
+        <input type="checkbox" id="filter-all" data-filter-all checked />
+        <span>All</span>
+      </label>
+      {categories.map((c) => (
+        <label class="filter-pill">
+          <input type="checkbox" class="filter-cat" data-cat={c.slug} checked />
+          <span>{c.name}</span>
+        </label>
+      ))}
+    </div>
+
+    <div class="flex items-center gap-2 text-sm">
+      <span class="text-[var(--color-ink-soft)]">Sort:</span>
+      <button data-sort="date" class="sort-btn" aria-pressed="true">Newest</button>
+      <button data-sort="likes" class="sort-btn" aria-pressed="false">Most liked</button>
+    </div>
+  </div>
+
+  <p data-filter-empty hidden class="rounded-lg border border-dashed border-[var(--color-line)] px-6 py-14 text-center text-sm text-[var(--color-ink-soft)]">
+    No stories match these filters.
+  </p>
+
+  <div data-filter-grid class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    {blogs.map((blog) => {
+      const date = new Date(blog.publishedAt ?? blog.createdAt);
+      return (
+        <a
+          href={`/blog/${blog.slug}`}
+          class:list={['filter-item group block overflow-hidden rounded-lg border border-[var(--color-line)] bg-white', ...blog.categories.map((c) => `cat-${c.slug}`)]}
+          data-item
+          data-likes={blog.likesCount}
+          data-date={timestamp(blog)}
+        >
+          <div class="aspect-[16/10] w-full overflow-hidden bg-[var(--color-paper-raised)]">
+            {blog.coverImage && (
+              <img src={blog.coverImage.url} alt="" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            )}
+          </div>
+          <div class="p-4">
+            {blog.categories[0] && (
+              <span class="mb-2 inline-block rounded-full bg-[var(--color-paper-raised)] px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--color-ink-soft)]">
+                {blog.categories[0].name}
+              </span>
+            )}
+            <h3 class="font-serif text-lg font-semibold leading-snug text-[var(--color-ink)] transition group-hover:text-[var(--color-accent)]">
+              {blog.title}
+            </h3>
+            <div class="mt-3 flex items-center justify-between text-xs text-[var(--color-ink-soft)]">
+              <span>{blog.author?.name ?? 'Unknown'}</span>
+              <span>{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} &middot; {blog.likesCount} likes</span>
+            </div>
+          </div>
+        </a>
+      );
+    })}
+  </div>
+</div>
+
+<style>
+  .filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.9rem;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--color-ink-soft);
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .filter-pill:has(input:checked) {
+    border-color: var(--color-accent);
+    color: var(--color-ink);
+    background: var(--color-accent-soft);
+  }
+  .filter-pill input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .sort-btn {
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    color: var(--color-ink-soft);
+    background: white;
+  }
+  .sort-btn[aria-pressed='true'] {
+    border-color: var(--color-ink);
+    color: var(--color-ink);
+    font-weight: 500;
+  }
+</style>
+
+<script src="../../scripts/blog-filter.ts"></script>

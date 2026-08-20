@@ -1,0 +1,68 @@
+---
+import DashboardShell from '../../layouts/DashboardShell.astro';
+import { connectToDatabase } from '../../lib/db';
+import { Blog } from '../../models/Blog';
+
+const user = Astro.locals.user!;
+const status = Astro.url.searchParams.get('status') ?? 'all';
+
+await connectToDatabase();
+const filter: Record<string, unknown> = { author: user._id };
+if (status === 'draft' || status === 'published') filter.status = status;
+
+const blogs = await Blog.find(filter).sort({ updatedAt: -1 }).lean();
+
+const tabs = [
+  { key: 'all', label: 'All' },
+  { key: 'published', label: 'Published' },
+  { key: 'draft', label: 'Drafts' },
+];
+---
+
+<DashboardShell title="My Blogs" active="blogs">
+  <div class="mb-6 flex items-center justify-between">
+    <h1 class="font-serif text-2xl font-semibold text-[var(--color-ink)]">My Blogs</h1>
+    <a href="/dashboard/create" class="rounded-full bg-[var(--color-ink)] px-4 py-2 text-sm font-medium text-[var(--color-paper)] hover:bg-[var(--color-accent)]">
+      New blog
+    </a>
+  </div>
+
+  <div class="mb-5 flex gap-1 border-b border-[var(--color-line)]">
+    {tabs.map((t) => (
+      <a
+        href={`/dashboard/blogs?status=${t.key}`}
+        class:list={[
+          'border-b-2 px-4 py-2.5 text-sm font-medium',
+          t.key === status ? 'border-[var(--color-accent)] text-[var(--color-ink)]' : 'border-transparent text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]',
+        ]}
+      >
+        {t.label}
+      </a>
+    ))}
+  </div>
+
+  {blogs.length === 0 ? (
+    <div class="rounded-lg border border-dashed border-[var(--color-line)] px-6 py-14 text-center">
+      <p class="text-sm text-[var(--color-ink-soft)]">Nothing here yet.</p>
+    </div>
+  ) : (
+    <ul class="divide-y divide-[var(--color-line)] rounded-lg border border-[var(--color-line)] bg-white">
+      {blogs.map((b) => (
+        <li class="flex items-center justify-between gap-4 px-4 py-4">
+          <div class="min-w-0">
+            <a href={b.status === 'published' ? `/blog/${b.slug}` : `/dashboard/edit/${b._id}`} class="truncate font-serif text-base font-medium text-[var(--color-ink)] hover:text-[var(--color-accent)]">
+              {b.title}
+            </a>
+            <p class="mt-1 text-xs text-[var(--color-ink-soft)]">{b.likesCount} likes &middot; {b.commentsCount} comments &middot; {b.viewsCount} views</p>
+          </div>
+          <div class="flex shrink-0 items-center gap-3">
+            <span class:list={['rounded-full px-2.5 py-0.5 text-xs', b.status === 'published' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700']}>
+              {b.status}
+            </span>
+            <a href={`/dashboard/edit/${b._id}`} class="text-sm text-[var(--color-accent)] hover:underline">Edit</a>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )}
+</DashboardShell>

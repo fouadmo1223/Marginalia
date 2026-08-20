@@ -1,0 +1,217 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LikeButton from '../../components/blog/LikeButton';
+import LikesViewer from '../../components/blog/LikesViewer';
+import CommentsSection from '../../components/blog/CommentsSection';
+import ReportButton from '../../components/ui/ReportButton';
+import { connectToDatabase } from '../../lib/db';
+import { Blog } from '../../models/Blog';
+import { Like } from '../../models/Like';
+import { isBlockedEitherWay } from '../../lib/social';
+import DOMPurify from 'isomorphic-dompurify';
+
+const { slug } = Astro.params;
+const user = Astro.locals.user;
+
+await connectToDatabase();
+const blog = await Blog.findOne({ slug })
+  .populate('author', 'username name avatarUrl bio')
+  .populate('categories', 'name slug')
+  .populate('tags', 'name slug')
+  .lean();
+
+if (!blog) return Astro.redirect('/404');
+
+const author = blog.author as any;
+const isOwner = user && String(user._id) === String(author._id);
+const isAdmin = user?.role === 'admin';
+
+if (blog.status !== 'published' && !isOwner && !isAdmin) {
+  return Astro.redirect('/404');
+}
+
+if (user && (await isBlockedEitherWay(String(user._id), String(author._id)))) {
+  return Astro.redirect('/404');
+}
+
+if (blog.status === 'published' && !isOwner) {
+  Blog.updateOne({ _id: blog._id }, { $inc: { viewsCount: 1 } }).exec();
+}
+
+const liked = user ? Boolean(await Like.exists({ blog: blog._id, user: user._id })) : false;
+const cleanContent = DOMPurify.sanitize(blog.content, { USE_PROFILES: { html: true } });
+
+const wordCount = blog.content.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+const readingMinutes = Math.max(1, Math.round(wordCount / 220));
+
+const categoryIds = (blog.categories as any[]).map((c) => c._id);
+const related = categoryIds.length
+  ? await Blog.find({
+      status: 'published',
+      _id: { $ne: blog._id },
+      categories: { $in: categoryIds },
+    })
+      .sort({ publishedAt: -1 })
+      .limit(3)
+      .populate('author', 'name username')
+      .select('title slug excerpt coverImage author')
+      .lean()
+  : [];
+
+const publishedDate = blog.publishedAt ?? blog.createdAt;
+const readableDate = new Date(publishedDate).toLocaleDateString('en-US', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: blog.title,
+  description: blog.excerpt,
+  image: blog.coverImage?.url,
+  datePublished: new Date(publishedDate).toISOString(),
+  dateModified: new Date(blog.updatedAt).toISOString(),
+  author: { '@type': 'Person', name: author.name, url: new URL(`/profile/${author.username}`, Astro.site).toString() },
+};
+---
+
+<BaseLayout
+  title={blog.title}
+  description={blog.excerpt || blog.title}
+  image={blog.coverImage?.url}
+  article={{
+    author: author.name,
+    publishedTime: new Date(publishedDate).toISOString(),
+    modifiedTime: new Date(blog.updatedAt).toISOString(),
+    tags: (blog.tags as any[]).map((t) => t.name),
+  }}
+>
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
+
+  <div class="pointer-events-none fixed left-0 right-0 top-0 z-50 h-[3px] bg-[var(--color-border)]/40">
+    <div data-reading-progress class="h-full origin-left scale-x-0 bg-[var(--color-accent)]"></div>
+  </div>
+
+  {blog.status === 'draft' && (
+    <p class="mx-auto mt-6 max-w-2xl rounded-md bg-[var(--color-warning-soft)] px-3 py-2 text-center text-sm text-[var(--color-warning)]">
+      This is an unpublished draft — only visible to you.
+    </p>
+  )}
+
+  {blog.coverImage && (
+    <div data-reveal-image class="relative aspect-[21/9] w-full overflow-hidden">
+      <img src={blog.coverImage.url} alt="" class="h-full w-full object-cover" />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+    </div>
+  )}
+
+  <article class="relative mx-auto max-w-2xl px-5 py-12 sm:px-8">
+    <div class="mb-6 flex flex-wrap items-center gap-2">
+      {(blog.categories as any[]).map((c) => (
+        <a href={`/search?type=blogs&category=${c.slug}`} class="eyebrow rounded-full border border-[var(--color-border)] px-3 py-1">
+          {c.name}
+        </a>
+      ))}
+    </div>
+
+    <h1 class="text-display text-4xl font-semibold leading-[1.05] text-[var(--color-ink)] sm:text-5xl">{blog.title}</h1>
+    {blog.excerpt && <p class="mt-5 text-lg text-[var(--color-ink-soft)]">{blog.excerpt}</p>}
+
+    <div class="mt-7 flex items-center justify-between border-y border-[var(--color-border)] py-4">
+      <a href={`/profile/${author.username}`} class="group flex items-center gap-3">
+        <span class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-[var(--color-paper-raised)] text-sm font-medium ring-1 ring-[var(--color-border)] transition group-hover:ring-[var(--color-accent)]">
+          {author.avatarUrl ? <img src={author.avatarUrl} alt="" class="h-full w-full object-cover" /> : author.name.charAt(0).toUpperCase()}
+        </span>
+        <span>
+          <span class="block text-sm font-medium text-[var(--color-ink)]">{author.name}</span>
+          <span class="block text-xs text-[var(--color-ink-soft)]">{readableDate} &middot; {readingMinutes} min read &middot; {blog.viewsCount} views</span>
+        </span>
+      </a>
+
+      {isOwner && (
+        <a href={`/dashboard/edit/${blog._id}`} class="text-sm font-medium text-[var(--color-accent)] hover:underline">Edit</a>
+      )}
+    </div>
+
+    <div class="relative lg:grid lg:grid-cols-[3rem_1fr] lg:gap-6">
+      <div class="hidden lg:block">
+        <div class="glass sticky top-24 flex flex-col items-center gap-4 rounded-full px-2.5 py-4">
+          <LikeButton client:load blogId={String(blog._id)} initialLiked={liked} initialCount={blog.likesCount} isAuthenticated={Boolean(user)} compact />
+          <span class="h-px w-4 bg-[var(--color-border)]"></span>
+          <a href="#comments" aria-label="Jump to comments" class="flex flex-col items-center gap-0.5 text-[var(--color-ink-soft)] transition hover:text-[var(--color-ink)]">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+            <span class="text-[10px]">{blog.commentsCount}</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="min-w-0">
+        <div class="prose-article mt-8 lg:mt-0" set:html={cleanContent} />
+
+        <div class="mt-10 flex flex-wrap gap-2">
+          {(blog.tags as any[]).map((t) => (
+            <a href={`/search?type=blogs&tag=${t.slug}`} class="rounded-full bg-[var(--color-paper-raised)] px-3 py-1 text-xs text-[var(--color-ink-soft)] transition hover:bg-[var(--color-accent-soft)] hover:text-[var(--color-accent)]">#{t.name}</a>
+          ))}
+        </div>
+
+        <div class="mt-8 flex items-center gap-4 lg:hidden">
+          <LikeButton client:load blogId={String(blog._id)} initialLiked={liked} initialCount={blog.likesCount} isAuthenticated={Boolean(user)} />
+          <LikesViewer client:visible blogId={String(blog._id)} />
+        </div>
+
+        <div class="mt-4 hidden items-center gap-4 lg:flex">
+          <LikesViewer client:visible blogId={String(blog._id)} />
+          {!isOwner && (
+            <div class="ml-auto">
+              <ReportButton client:idle targetType="blog" targetId={String(blog._id)} isAuthenticated={Boolean(user)} />
+            </div>
+          )}
+        </div>
+        {!isOwner && (
+          <div class="mt-2 flex justify-end lg:hidden">
+            <ReportButton client:idle targetType="blog" targetId={String(blog._id)} isAuthenticated={Boolean(user)} />
+          </div>
+        )}
+
+        <a href={`/profile/${author.username}`} class="mt-12 flex items-center gap-4 rounded-sm border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition hover:border-[var(--color-border-strong)]">
+          <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-paper-raised)] text-lg font-medium">
+            {author.avatarUrl ? <img src={author.avatarUrl} alt="" class="h-full w-full object-cover" /> : author.name.charAt(0).toUpperCase()}
+          </span>
+          <span class="min-w-0">
+            <span class="eyebrow">Written by</span>
+            <span class="mt-0.5 block font-serif text-lg font-semibold text-[var(--color-ink)]">{author.name}</span>
+            {author.bio && <span class="mt-1 block line-clamp-2 text-sm text-[var(--color-ink-soft)]">{author.bio}</span>}
+          </span>
+        </a>
+
+        <div id="comments">
+          <CommentsSection client:visible blogId={String(blog._id)} currentUserId={user ? String(user._id) : null} isAuthenticated={Boolean(user)} />
+        </div>
+      </div>
+    </div>
+  </article>
+
+  {related.length > 0 && (
+    <section class="border-t border-[var(--color-border)] bg-[var(--color-paper-raised)]/40">
+      <div class="mx-auto max-w-4xl px-5 py-14 sm:px-8">
+        <p class="eyebrow mb-6">Related reading</p>
+        <div class="grid gap-6 sm:grid-cols-3">
+          {related.map((r: any) => (
+            <a href={`/blog/${r.slug}`} class="group block">
+              <div class="mb-3 aspect-[4/3] w-full overflow-hidden rounded-sm bg-[var(--color-paper-raised)]">
+                {r.coverImage && <img src={r.coverImage.url} alt="" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />}
+              </div>
+              <h3 class="font-serif text-base font-semibold leading-snug text-[var(--color-ink)] transition group-hover:text-[var(--color-accent)]">{r.title}</h3>
+              {r.author && <p class="mt-1 text-xs text-[var(--color-ink-soft)]">{r.author.name}</p>}
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <script src="../../scripts/reading-progress.ts"></script>
+  <script src="../../scripts/scroll-reveal.ts"></script>
+</BaseLayout>

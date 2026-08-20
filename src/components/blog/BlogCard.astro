@@ -1,0 +1,62 @@
+---
+interface Props {
+  blog: {
+    _id: unknown;
+    title: string;
+    slug: string;
+    excerpt: string;
+    coverImage: { url: string } | null;
+    likesCount: number;
+    commentsCount: number;
+    publishedAt: string | Date | null;
+    createdAt: string | Date;
+    author: { username: string; name: string; avatarUrl: string | null } | null;
+  };
+  compact?: boolean;
+}
+
+const { blog, compact = false } = Astro.props;
+
+const date = new Date(blog.publishedAt ?? blog.createdAt).toLocaleDateString('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
+---
+
+<article data-reveal class:list={['group border-b border-[var(--color-line)] py-7', compact && 'py-5']}>
+  <a href={`/blog/${blog.slug}`} class="grid grid-cols-1 gap-5 sm:grid-cols-[1fr_auto]">
+    <div class="min-w-0">
+      {blog.author && (
+        <div class="mb-2 flex items-center gap-2 text-xs text-[var(--color-ink-soft)]">
+          <span class="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-[var(--color-paper-raised)]">
+            {blog.author.avatarUrl ? (
+              <img src={blog.author.avatarUrl} alt="" class="h-full w-full object-cover" />
+            ) : (
+              <span class="text-[10px] font-medium">{blog.author.name.charAt(0).toUpperCase()}</span>
+            )}
+          </span>
+          <span>{blog.author.name}</span>
+          <span aria-hidden="true">&middot;</span>
+          <time>{date}</time>
+        </div>
+      )}
+      <h2 class:list={['font-serif font-semibold text-[var(--color-ink)] transition group-hover:text-[var(--color-accent)]', compact ? 'text-lg' : 'text-2xl']}>
+        {blog.title}
+      </h2>
+      {blog.excerpt && <p class="mt-2 line-clamp-2 text-sm text-[var(--color-ink-soft)]">{blog.excerpt}</p>}
+      <div class="mt-3 flex items-center gap-4 text-xs text-[var(--color-ink-soft)]">
+        <span>{blog.likesCount} likes</span>
+        <span>{blog.commentsCount} comments</span>
+      </div>
+    </div>
+    {blog.coverImage && !compact && (
+      <img
+        src={blog.coverImage.url}
+        alt=""
+        loading="lazy"
+        class="h-32 w-full rounded-md object-cover sm:h-24 sm:w-36"
+      />
+    )}
+  </a>
+</article>

@@ -1,0 +1,13 @@
+---
+import DashboardShell from '../../layouts/DashboardShell.astro';
+import BlogEditor from '../../components/dashboard/BlogEditor';
+import { connectToDatabase } from '../../lib/db';
+import { Category } from '../../models/Category';
+
+await connectToDatabase();
+const categories = await Category.find().sort({ order: 1 }).lean();
+---
+
+<DashboardShell title="Write a blog" active="create">
+  <BlogEditor client:load categories={categories.map((c) => ({ _id: String(c._id), name: c.name }))} />
+</DashboardShell>
