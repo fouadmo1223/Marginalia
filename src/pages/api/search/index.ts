@@ -11,7 +11,9 @@ import { z } from 'zod';
 export const prerender = false;
 
 const querySchema = z.object({
-  q: z.string().trim().min(1).max(200),
+  q: z.string().trim().max(200).optional(),
+  category: z.string().trim().max(100).optional(),
+  tag: z.string().trim().max(100).optional(),
   type: z.enum(['all', 'blogs', 'users', 'tags', 'categories']).default('all'),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(30).default(10),
@@ -22,16 +24,59 @@ export const GET: APIRoute = async ({ url, locals }) => {
     const parsed = querySchema.safeParse(Object.fromEntries(url.searchParams));
     if (!parsed.success) return jsonOk({ blogs: [], users: [], tags: [], categories: [] });
 
-    const { q, type, page, limit } = parsed.data;
+    const { q, category, tag, type, page, limit } = parsed.data;
+    // Browsing by category/tag slug is a distinct mode from free-text search —
+    // no query string is required for it, unlike the text-search paths below.
+    if (!q && !category && !tag) return jsonOk({ blogs: [], users: [], tags: [], categories: [] });
+
     await connectToDatabase();
 
     const excluded = await getExcludedUserIds(locals.user ? String(locals.user._id) : null);
     const skip = (page - 1) * limit;
 
-    const [blogs, users, tags, categories] = await Promise.all([
+    let blogs: any[] = [];
+    let activeCategory: any = null;
+    let activeTag: any = null;
+
+    if (category || tag) {
+      const blogFilter: Record<string, unknown> = {
+        status: 'published',
+        ...(excluded.length ? { author: { $nin: excluded } } : {}),
+      };
+      if (category) {
+        activeCategory = await Category.findOne({ slug: category }).lean();
+        if (!activeCategory) return jsonOk({ blogs: [], users: [], tags: [], categories: [] });
+        blogFilter.categories = activeCategory._id;
+      }
+      if (tag) {
+        activeTag = await Tag.findOne({ slug: tag }).lean();
+        if (!activeTag) return jsonOk({ blogs: [], users: [], tags: [], categories: [] });
+        blogFilter.tags = activeTag._id;
+      }
+      blogs = await Blog.find(blogFilter)
+        .sort({ publishedAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('author', 'username name avatarUrl')
+        .lean();
+
+      return jsonOk({ blogs, users: [], tags: [], categories: [], activeCategory, activeTag });
+    }
+
+    // Regex substring matching rather than $text: MongoDB's $text index only matches
+    // whole (stemmed) words, so a short or partial query like "d" never matches
+    // "Devon" — it needs to behave like typeahead, not whole-word search.
+    const pattern = q!.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const rx = { $regex: pattern, $options: 'i' };
+
+    const [searchedBlogs, users, tags, categories] = await Promise.all([
       type === 'all' || type === 'blogs'
-        ? Blog.find({ $text: { $search: q }, status: 'published', ...(excluded.length ? { author: { $nin: excluded } } : {}) })
-            .sort({ score: { $meta: 'textScore' } })
+        ? Blog.find({
+            $or: [{ title: rx }, { excerpt: rx }],
+            status: 'published',
+            ...(excluded.length ? { author: { $nin: excluded } } : {}),
+          })
+            .sort({ publishedAt: -1 })
             .skip(skip)
             .limit(limit)
             .populate('author', 'username name avatarUrl')
@@ -39,7 +84,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
         : [],
       type === 'all' || type === 'users'
         ? User.find({
-            $text: { $search: q },
+            $or: [{ name: rx }, { username: rx }],
             status: 'active',
             ...(excluded.length ? { _id: { $nin: excluded } } : {}),
           })
@@ -49,14 +94,14 @@ export const GET: APIRoute = async ({ url, locals }) => {
             .lean()
         : [],
       type === 'all' || type === 'tags'
-        ? Tag.find({ name: { $regex: q, $options: 'i' } }).sort({ usageCount: -1 }).limit(limit).lean()
+        ? Tag.find({ name: { $regex: q!, $options: 'i' } }).sort({ usageCount: -1 }).limit(limit).lean()
         : [],
       type === 'all' || type === 'categories'
-        ? Category.find({ name: { $regex: q, $options: 'i' } }).limit(limit).lean()
+        ? Category.find({ name: { $regex: q!, $options: 'i' } }).limit(limit).lean()
         : [],
     ]);
 
-    return jsonOk({ blogs, users, tags, categories });
+    return jsonOk({ blogs: searchedBlogs, users, tags, categories });
   } catch (err) {
     return handleApiError(err);
   }

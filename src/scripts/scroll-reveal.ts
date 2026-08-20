@@ -7,16 +7,20 @@ motionSafe.add(PREFERS_MOTION, () => {
   items.forEach((el, i) => {
     gsap.fromTo(
       el,
-      { opacity: 0, y: 28, scale: 0.97, filter: 'blur(6px)' },
+      { opacity: 0, y: 20, scale: 0.985, filter: 'blur(4px)' },
       {
         opacity: 1,
         y: 0,
         scale: 1,
         filter: 'blur(0px)',
-        duration: 0.8,
-        delay: Math.min(i, 6) * 0.05,
-        ease: 'expo.out',
-        scrollTrigger: { trigger: el, start: 'top 90%', once: true },
+        duration: 1,
+        // A small base delay keeps above-the-fold items (which trigger almost
+        // instantly on load) from colliding with page-transition.ts's own fade —
+        // two competing animations firing in the same instant is what reads as
+        // "rough" rather than a single considered motion.
+        delay: 0.1 + Math.min(i, 6) * 0.06,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 92%', once: true },
       },
     );
   });

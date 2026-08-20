@@ -27,7 +27,12 @@ const { quotes } = Astro.props;
       </div>
       <div data-carousel-dots class="mt-8 flex justify-center gap-2">
         {quotes.map((_, i) => (
-          <button data-carousel-dot aria-label={`Show quote ${i + 1}`} class:list={['h-1.5 w-6 rounded-full transition-all duration-300', i === 0 ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-inverse-border)]']}></button>
+          <button
+            data-carousel-dot
+            aria-label={`Show quote ${i + 1}`}
+            class="h-1.5 w-6 rounded-full bg-[var(--color-inverse-border)] transition-all duration-300"
+            style={i === 0 ? 'background-color: var(--color-accent);' : ''}
+          ></button>
         ))}
       </div>
     </div>

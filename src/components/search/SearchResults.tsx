@@ -28,7 +28,15 @@ interface CategoryResult {
 
 type FilterKey = 'all' | 'blogs' | 'users' | 'tags';
 
-export default function SearchResults({ initialQuery }: { initialQuery: string }) {
+export default function SearchResults({
+  initialQuery,
+  initialCategory = '',
+  initialTag = '',
+}: {
+  initialQuery: string;
+  initialCategory?: string;
+  initialTag?: string;
+}) {
   const [query, setQuery] = useState(initialQuery);
   const [debounced, setDebounced] = useState(initialQuery);
   const [filter, setFilter] = useState<FilterKey>('all');
@@ -40,6 +48,13 @@ export default function SearchResults({ initialQuery }: { initialQuery: string }
     categories: CategoryResult[];
   }>({ blogs: [], users: [], tags: [], categories: [] });
   const [searched, setSearched] = useState(false);
+  // Browsing a category/tag chip is a distinct mode from typed text search — it
+  // needs no query string and shows a "Browsing: X" header instead of the search
+  // tabs. Typing into the box exits browse mode back to normal search.
+  const [browse, setBrowse] = useState<{ kind: 'category' | 'tag'; slug: string } | null>(
+    initialCategory ? { kind: 'category', slug: initialCategory } : initialTag ? { kind: 'tag', slug: initialTag } : null,
+  );
+  const [browseLabel, setBrowseLabel] = useState(initialCategory || initialTag);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query.trim()), 350);
@@ -47,6 +62,21 @@ export default function SearchResults({ initialQuery }: { initialQuery: string }
   }, [query]);
 
   useEffect(() => {
+    if (browse) {
+      setLoading(true);
+      const param = browse.kind === 'category' ? `category=${encodeURIComponent(browse.slug)}` : `tag=${encodeURIComponent(browse.slug)}`;
+      api
+        .get<typeof results & { activeCategory?: { name: string }; activeTag?: { name: string } }>(`/api/search?${param}`)
+        .then((data) => {
+          setResults(data);
+          setSearched(true);
+          const label = data.activeCategory?.name ?? data.activeTag?.name;
+          if (label) setBrowseLabel(label);
+        })
+        .finally(() => setLoading(false));
+      return;
+    }
+
     if (!debounced) {
       setResults({ blogs: [], users: [], tags: [], categories: [] });
       setSearched(false);
@@ -54,6 +84,8 @@ export default function SearchResults({ initialQuery }: { initialQuery: string }
     }
     const url = new URL(window.location.href);
     url.searchParams.set('q', debounced);
+    url.searchParams.delete('category');
+    url.searchParams.delete('tag');
     window.history.replaceState({}, '', url.toString());
 
     setLoading(true);
@@ -64,7 +96,16 @@ export default function SearchResults({ initialQuery }: { initialQuery: string }
         setSearched(true);
       })
       .finally(() => setLoading(false));
-  }, [debounced]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debounced, browse]);
+
+  function exitBrowse() {
+    setBrowse(null);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('category');
+    url.searchParams.delete('tag');
+    window.history.replaceState({}, '', url.toString());
+  }
 
   const counts = {
     all: results.blogs.length + results.users.length + results.tags.length + results.categories.length,
@@ -85,14 +126,28 @@ export default function SearchResults({ initialQuery }: { initialQuery: string }
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
         </svg>
         <input
-          autoFocus
+          autoFocus={!browse}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (browse) setBrowse(null);
+          }}
           placeholder="Search the archive…"
           className="text-display w-full border-b border-[var(--color-border)] bg-transparent py-4 pl-9 text-3xl font-medium text-[var(--color-ink)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:outline-none sm:text-4xl"
           aria-label="Search"
         />
       </div>
+
+      {browse && (
+        <div className="mt-5 flex items-center gap-2 rounded-full bg-[var(--color-accent-soft)] px-4 py-2 text-sm text-[var(--color-accent)]">
+          <span className="font-medium">
+            Browsing {browse.kind === 'tag' ? `#${browseLabel}` : browseLabel}
+          </span>
+          <button onClick={exitBrowse} className="ml-auto cursor-pointer rounded-full p-1 text-[var(--color-accent)]/70 hover:text-[var(--color-accent)]" aria-label="Clear filter">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
+      )}
 
       <div className="mt-5 flex gap-1 overflow-x-auto">
         {(

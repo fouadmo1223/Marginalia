@@ -3,11 +3,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import SearchResults from '../components/search/SearchResults';
 
 const q = Astro.url.searchParams.get('q') ?? '';
+const category = Astro.url.searchParams.get('category') ?? '';
+const tag = Astro.url.searchParams.get('tag') ?? '';
+
+const title = category ? `Category` : tag ? `#${tag}` : q ? `"${q}"` : 'Search';
 ---
 
-<BaseLayout title={q ? `“${q}”` : 'Search'} noIndex>
+<BaseLayout title={title} noIndex>
   <div class="mx-auto max-w-2xl px-5 py-14 sm:px-8 sm:py-16">
     <p class="eyebrow mb-2">Search the archive</p>
-    <SearchResults client:load initialQuery={q} />
+    <SearchResults client:load initialQuery={q} initialCategory={category} initialTag={tag} />
   </div>
 </BaseLayout>
