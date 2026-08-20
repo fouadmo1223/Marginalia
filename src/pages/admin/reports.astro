@@ -1,0 +1,9 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import AdminReportsQueue from '../../components/admin/AdminReportsQueue';
+---
+
+<AdminShell title="Reports" active="reports">
+  <h1 class="mb-6 font-serif text-2xl font-semibold text-[var(--color-ink)]">Moderation queue</h1>
+  <AdminReportsQueue client:load />
+</AdminShell>

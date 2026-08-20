@@ -1,0 +1,9 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import AdminUsersTable from '../../components/admin/AdminUsersTable';
+---
+
+<AdminShell title="Users" active="users">
+  <h1 class="mb-6 font-serif text-2xl font-semibold text-[var(--color-ink)]">Users</h1>
+  <AdminUsersTable client:load />
+</AdminShell>

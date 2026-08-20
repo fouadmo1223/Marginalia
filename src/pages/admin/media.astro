@@ -1,0 +1,43 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import { connectToDatabase } from '../../lib/db';
+import { Blog } from '../../models/Blog';
+
+await connectToDatabase();
+
+const blogsWithImages = await Blog.find({ $or: [{ coverImage: { $ne: null } }, { 'images.0': { $exists: true } }] })
+  .sort({ createdAt: -1 })
+  .limit(60)
+  .select('title slug coverImage images')
+  .populate('author', 'username')
+  .lean();
+
+const media = blogsWithImages.flatMap((b: any) => {
+  const items = [];
+  if (b.coverImage) items.push({ url: b.coverImage.url, blog: b });
+  for (const img of b.images ?? []) items.push({ url: img.url, blog: b });
+  return items;
+});
+---
+
+<AdminShell title="Media" active="media">
+  <h1 class="mb-2 font-serif text-2xl font-semibold text-[var(--color-ink)]">Media</h1>
+  <p class="mb-6 text-sm text-[var(--color-ink-soft)]">
+    Images uploaded through the blog editor, stored and optimized by Cloudinary. Delete a blog to remove its images.
+  </p>
+
+  {media.length === 0 ? (
+    <div class="rounded-lg border border-dashed border-[var(--color-line)] px-6 py-14 text-center">
+      <p class="text-sm text-[var(--color-ink-soft)]">No uploaded images yet.</p>
+    </div>
+  ) : (
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+      {media.map((m) => (
+        <a href={`/blog/${m.blog.slug}`} class="group block">
+          <img src={m.url} alt="" loading="lazy" class="aspect-square w-full rounded-md object-cover" />
+          <p class="mt-1 truncate text-xs text-[var(--color-ink-soft)] group-hover:text-[var(--color-accent)]">{m.blog.title}</p>
+        </a>
+      ))}
+    </div>
+  )}
+</AdminShell>

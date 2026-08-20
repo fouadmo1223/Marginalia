@@ -1,0 +1,9 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import AdminTags from '../../components/admin/AdminTags';
+---
+
+<AdminShell title="Tags" active="tags">
+  <h1 class="mb-6 font-serif text-2xl font-semibold text-[var(--color-ink)]">Tags</h1>
+  <AdminTags client:load />
+</AdminShell>

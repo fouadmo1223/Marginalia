@@ -1,0 +1,74 @@
+---
+interface Props {
+  data: { _id: string; count: number }[];
+  label: string;
+  color?: string;
+}
+const { data, label, color = 'var(--color-accent)' } = Astro.props;
+
+const max = Math.max(1, ...data.map((d) => d.count));
+const total = data.reduce((sum, d) => sum + d.count, 0);
+const width = 560;
+const height = 160;
+const barGap = 3;
+const barWidth = data.length > 0 ? width / data.length - barGap : 0;
+const gradientId = `bar-grad-${label.replace(/[^a-z0-9]/gi, '')}`;
+---
+
+<div class="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm">
+  <div class="mb-4 flex items-baseline justify-between">
+    <p class="text-sm font-semibold text-[var(--color-ink-strong)]">{label}</p>
+    <p class="font-serif text-lg font-semibold tabular-nums" style={`color: ${color};`}>{total.toLocaleString()}</p>
+  </div>
+  {data.length === 0 ? (
+    <p class="py-8 text-center text-sm text-[var(--color-ink-soft)]">No data for this period.</p>
+  ) : (
+    <svg viewBox={`0 0 ${width} ${height}`} class="w-full overflow-visible" role="img" aria-label={label}>
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color={color} stop-opacity="0.95" />
+          <stop offset="100%" stop-color={color} stop-opacity="0.55" />
+        </linearGradient>
+      </defs>
+      <line x1="0" y1={height - 1} x2={width} y2={height - 1} stroke="var(--color-border)" stroke-width="1" />
+      {data.map((d, i) => {
+        const barHeight = Math.max(3, (d.count / max) * (height - 24));
+        return (
+          <g class="chart-bar" style={`--bar-h: ${barHeight}px; --bar-delay: ${i * 18}ms;`}>
+            <rect
+              x={i * (barWidth + barGap)}
+              y={height - barHeight}
+              width={barWidth}
+              height={barHeight}
+              fill={`url(#${gradientId})`}
+              rx="2.5"
+              class="origin-bottom"
+            >
+              <title>{`${d._id}: ${d.count}`}</title>
+            </rect>
+          </g>
+        );
+      })}
+    </svg>
+  )}
+</div>
+
+<style>
+  .chart-bar rect {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: grow-bar 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: var(--bar-delay, 0ms);
+    transition: opacity 0.15s ease;
+  }
+  .chart-bar rect:hover {
+    opacity: 0.75;
+  }
+  @keyframes grow-bar {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chart-bar rect { animation: none; }
+  }
+</style>

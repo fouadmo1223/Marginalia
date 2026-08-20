@@ -1,0 +1,13 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import AdminHomeCuration from '../../components/admin/AdminHomeCuration';
+---
+
+<AdminShell title="Homepage" active="homepage">
+  <h1 class="mb-2 font-serif text-2xl font-semibold text-[var(--color-ink)]">Homepage curation</h1>
+  <p class="mb-6 text-sm text-[var(--color-ink-soft)]">
+    Pin specific blogs to the homepage's Featured, Trending, and Archive sections. Sections you leave empty
+    fall back to their automatic pick.
+  </p>
+  <AdminHomeCuration client:load />
+</AdminShell>

@@ -1,0 +1,9 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import AdminCommentsTable from '../../components/admin/AdminCommentsTable';
+---
+
+<AdminShell title="Comments" active="comments">
+  <h1 class="mb-6 font-serif text-2xl font-semibold text-[var(--color-ink)]">Comments</h1>
+  <AdminCommentsTable client:load />
+</AdminShell>
