@@ -1,0 +1,26 @@
+---
+const milestones = [
+  { year: '2023', title: 'The idea', body: 'A handful of writers, tired of algorithmic feeds, started sketching what a platform built purely for reading and writing would look like.' },
+  { year: '2024', title: 'First draft', body: 'Marginalia launched quietly to a few hundred writers — no ads, no engagement bait, just publishing and a chronological feed.' },
+  { year: '2025', title: 'Community grows', body: 'Follows, comments, and moderation tools arrived as the community asked for them — never before there was real demand.' },
+  { year: 'Today', title: 'Still writing', body: 'Every feature ships because a writer or reader needed it. That is the whole roadmap process.' },
+];
+---
+
+<div class="relative mx-auto max-w-2xl">
+  <div class="absolute bottom-0 left-[15px] top-0 w-px bg-[var(--color-border)]" aria-hidden="true"></div>
+  <ul class="space-y-10">
+    {milestones.map((m) => (
+      <li data-reveal class="relative flex gap-6 pl-0">
+        <span class="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-accent)] bg-[var(--color-surface)] text-[10px] font-bold text-[var(--color-accent)]">
+          &bull;
+        </span>
+        <div class="-mt-1">
+          <p class="text-xs font-semibold uppercase tracking-wide text-[var(--color-accent)]">{m.year}</p>
+          <h3 class="mt-1 font-serif text-xl font-semibold text-[var(--color-ink-strong)]">{m.title}</h3>
+          <p class="mt-1.5 text-sm leading-relaxed text-[var(--color-ink-soft)]">{m.body}</p>
+        </div>
+      </li>
+    ))}
+  </ul>
+</div>

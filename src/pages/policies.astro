@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const sections = [
+  { id: 'privacy', label: 'Privacy Policy' },
+  { id: 'terms', label: 'Terms of Service' },
+  { id: 'community', label: 'Community Guidelines' },
+  { id: 'cookies', label: 'Cookies' },
+];
+---
+
+<BaseLayout title="Policies" description="Privacy policy, terms of service, community guidelines, and cookie use.">
+  <div class="mx-auto max-w-5xl px-5 py-14 sm:px-8 sm:py-16">
+    <p class="eyebrow mb-2">Legal</p>
+    <h1 class="mb-10 font-serif text-3xl font-semibold text-[var(--color-ink-strong)] sm:text-4xl">Policies</h1>
+
+    <div class="grid gap-10 lg:grid-cols-[200px_1fr]">
+      <nav class="lg:sticky lg:top-24 lg:h-fit">
+        <ul class="flex gap-1 overflow-x-auto pb-2 text-sm lg:flex-col lg:overflow-visible lg:pb-0">
+          {sections.map((s) => (
+            <li>
+              <a
+                href={`#${s.id}`}
+                class="block whitespace-nowrap rounded-lg px-3 py-2 text-[var(--color-ink-soft)] transition-colors hover:bg-[var(--color-surface-raised)] hover:text-[var(--color-ink)] lg:whitespace-normal"
+              >
+                {s.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div class="min-w-0 space-y-16">
+        <section id="privacy" data-reveal>
+          <h2 class="mb-4 font-serif text-2xl font-semibold text-[var(--color-ink-strong)]">Privacy Policy</h2>
+          <div class="prose-article space-y-4 text-base leading-relaxed text-[var(--color-ink)]">
+            <p><strong>What we collect.</strong> Your account email, name, username, and anything you choose to add to your profile (bio, avatar). We also record basic usage data — logins, likes, follows, comments — needed to run the product.</p>
+            <p><strong>What we don't do.</strong> We don't sell your data to advertisers or third parties. We don't run behavioral ad tracking. There is no ad network on this site to share data with.</p>
+            <p><strong>Cover images and avatars</strong> you upload are stored with Cloudinary, our image hosting provider, and served over HTTPS.</p>
+            <p><strong>Your rights.</strong> You can edit or delete your profile information at any time from Settings. Deleting your account permanently removes your blogs, comments, likes, and follows — this cannot be undone.</p>
+            <p><strong>Blocking.</strong> When you block someone, they lose the ability to see your profile, blogs, or comment on your content, and our systems enforce this at the database query level, not just in the interface.</p>
+          </div>
+        </section>
+
+        <section id="terms" data-reveal>
+          <h2 class="mb-4 font-serif text-2xl font-semibold text-[var(--color-ink-strong)]">Terms of Service</h2>
+          <div class="prose-article space-y-4 text-base leading-relaxed text-[var(--color-ink)]">
+            <p><strong>Your content, your rights.</strong> You retain full ownership of everything you publish. By posting, you grant Marginalia a license to display it on the platform — nothing more.</p>
+            <p><strong>Account responsibility.</strong> You're responsible for what's posted from your account and for keeping your credentials secure.</p>
+            <p><strong>Acceptable use.</strong> No spam, harassment, impersonation, or illegal content. Violations may result in content removal, a suspended account, or a permanent ban, at our discretion.</p>
+            <p><strong>Availability.</strong> We aim for reliable uptime but don't guarantee the service will be uninterrupted or error-free. Back up anything irreplaceable.</p>
+            <p><strong>Changes.</strong> We may update these terms as the product evolves. Material changes will be reflected here with an updated date.</p>
+          </div>
+        </section>
+
+        <section id="community" data-reveal>
+          <h2 class="mb-4 font-serif text-2xl font-semibold text-[var(--color-ink-strong)]">Community Guidelines</h2>
+          <div class="prose-article space-y-4 text-base leading-relaxed text-[var(--color-ink)]">
+            <p>Marginalia exists for writing worth reading. To keep it that way:</p>
+            <ul class="list-disc space-y-2 pl-5">
+              <li>Be honest about who you are — no impersonation or fake identities.</li>
+              <li>Disagree with ideas, not people. Personal attacks and harassment get removed.</li>
+              <li>Don't post spam, scams, or content designed purely to game likes or follows.</li>
+              <li>Credit sources. Plagiarism is grounds for content removal.</li>
+              <li>Use the report button on anything that crosses these lines — moderators review every report.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="cookies" data-reveal>
+          <h2 class="mb-4 font-serif text-2xl font-semibold text-[var(--color-ink-strong)]">Cookies</h2>
+          <div class="prose-article space-y-4 text-base leading-relaxed text-[var(--color-ink)]">
+            <p>We use a single essential cookie to keep you signed in — a signed, HttpOnly session token. It's not used for tracking or advertising, and it's not shared with any third party.</p>
+            <p>We don't use analytics or advertising cookies. Disabling cookies in your browser will sign you out and prevent staying signed in.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="../scripts/scroll-reveal.ts"></script>
+</BaseLayout>
