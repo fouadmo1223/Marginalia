@@ -16,8 +16,12 @@ function setupCarousel(root: HTMLElement, animated: boolean) {
     index = (next + slides.length) % slides.length;
     if (prev === index) return;
 
-    dots.forEach((dot, i) => dot.classList.toggle('bg-[var(--color-accent)]', i === index));
-    dots.forEach((dot, i) => dot.classList.toggle('bg-white/20', i !== index));
+    // Two conflicting `bg-*` utility classes can't reliably override each other by
+    // toggling (CSS source order wins, not DOM class order) — set the active dot's
+    // color directly instead.
+    dots.forEach((dot, i) => {
+      dot.style.backgroundColor = i === index ? 'var(--color-accent)' : '';
+    });
 
     if (!animated) {
       slides[prev]!.style.opacity = '0';

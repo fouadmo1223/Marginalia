@@ -6,8 +6,12 @@ const { quotes } = Astro.props;
 ---
 
 {quotes.length > 0 && (
-  <section class="border-b border-[var(--color-line)] bg-[var(--color-ink)]">
-    <div class="mx-auto max-w-3xl px-5 py-20 text-center sm:px-8">
+  <section data-glass-spotlight class="relative overflow-hidden border-b border-[var(--color-line)] bg-[var(--color-inverse-bg)]">
+    <div data-glass-layer class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300" aria-hidden="true"></div>
+    <div class="relative mx-auto max-w-3xl px-5 py-20 text-center sm:px-8">
+      <svg class="mx-auto mb-6 h-8 w-8 text-[var(--color-accent)] opacity-60" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M7.17 6.17A5.5 5.5 0 0 0 3 11.5V18h6.5v-6.5H5.6a3.5 3.5 0 0 1 2.9-3.45l-1.33-1.88Zm10 0A5.5 5.5 0 0 0 13 11.5V18h6.5v-6.5H15.6a3.5 3.5 0 0 1 2.9-3.45l-1.33-1.88Z" />
+      </svg>
       <div data-carousel class="relative min-h-[220px]">
         {quotes.map((q, i) => (
           <a
@@ -16,18 +20,20 @@ const { quotes } = Astro.props;
             style={i === 0 ? '' : 'opacity: 0;'}
             class="absolute inset-0 flex flex-col items-center justify-center"
           >
-            <p class="font-serif text-2xl font-medium leading-snug text-[var(--color-paper)] sm:text-3xl">&ldquo;{q.excerpt}&rdquo;</p>
-            <p class="mt-6 text-sm text-white/50">{q.author?.name} &middot; {q.title}</p>
+            <p class="font-serif text-2xl font-medium leading-snug text-[var(--color-inverse-text)] sm:text-3xl">&ldquo;{q.excerpt}&rdquo;</p>
+            <p class="mt-6 text-sm font-medium text-[var(--color-inverse-text-soft)]">{q.author?.name} &middot; {q.title}</p>
           </a>
         ))}
       </div>
       <div data-carousel-dots class="mt-8 flex justify-center gap-2">
         {quotes.map((_, i) => (
-          <button data-carousel-dot aria-label={`Show quote ${i + 1}`} class:list={['h-1.5 w-6 rounded-full transition-colors', i === 0 ? 'bg-[var(--color-accent)]' : 'bg-white/20']}></button>
+          <button data-carousel-dot aria-label={`Show quote ${i + 1}`} class:list={['h-1.5 w-6 rounded-full transition-all duration-300', i === 0 ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-inverse-border)]']}></button>
         ))}
       </div>
     </div>
   </section>
 )}
+
+<script src="../../scripts/glass-spotlight.ts"></script>
 
 <script src="../../scripts/carousel.ts"></script>

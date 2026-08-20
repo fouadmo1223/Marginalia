@@ -36,7 +36,7 @@ function timestamp(blog: (typeof blogs)[number]) {
     </div>
 
     <div class="flex items-center gap-2 text-sm">
-      <span class="text-[var(--color-ink-soft)]">Sort:</span>
+      <span class="font-medium text-[var(--color-ink-soft)]">Sort:</span>
       <button data-sort="date" class="sort-btn" aria-pressed="true">Newest</button>
       <button data-sort="likes" class="sort-btn" aria-pressed="false">Most liked</button>
     </div>
@@ -52,7 +52,7 @@ function timestamp(blog: (typeof blogs)[number]) {
       return (
         <a
           href={`/blog/${blog.slug}`}
-          class:list={['filter-item group block overflow-hidden rounded-lg border border-[var(--color-line)] bg-white', ...blog.categories.map((c) => `cat-${c.slug}`)]}
+          class:list={['filter-item group block overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg', ...blog.categories.map((c) => `cat-${c.slug}`)]}
           data-item
           data-likes={blog.likesCount}
           data-date={timestamp(blog)}
@@ -108,17 +108,24 @@ function timestamp(blog: (typeof blogs)[number]) {
     height: 0;
   }
   .sort-btn {
-    border: 1px solid var(--color-line);
+    border: 1px solid var(--color-border);
     border-radius: 999px;
-    padding: 0.3rem 0.8rem;
+    padding: 0.3rem 0.9rem;
     font-size: 0.8rem;
+    font-weight: 500;
     color: var(--color-ink-soft);
-    background: white;
+    background: var(--color-surface);
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+  }
+  .sort-btn:hover {
+    border-color: var(--color-border-strong);
+    color: var(--color-ink);
   }
   .sort-btn[aria-pressed='true'] {
-    border-color: var(--color-ink);
-    color: var(--color-ink);
-    font-weight: 500;
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    background: var(--color-accent-soft);
   }
 </style>
 

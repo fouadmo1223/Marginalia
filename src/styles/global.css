@@ -33,6 +33,17 @@
   --color-accent2: #8a3a54;
   --color-accent2-soft: #ecdbe1;
 
+  /* --- Inverse (theme-invariant) ---
+     For sections that are deliberately always a dark accent band regardless of
+     site theme (CTA bands, quote carousels). Unlike --color-ink/--color-paper,
+     these never flip in dark mode — using ink/paper for a "forced dark" section
+     inverts it to light-bg/dark-text once the site itself switches to dark mode. */
+  --color-inverse-bg: #14181c;
+  --color-inverse-bg-raised: #1d2329;
+  --color-inverse-text: #f4f3ee;
+  --color-inverse-text-soft: rgba(244, 243, 238, 0.6);
+  --color-inverse-border: rgba(244, 243, 238, 0.12);
+
   /* --- Semantic --- */
   --color-success: #2f6b4f;
   --color-success-soft: #dcecdf;

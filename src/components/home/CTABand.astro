@@ -5,15 +5,17 @@ interface Props {
 const { isAuthenticated } = Astro.props;
 ---
 
-<section data-parallax-scope class="relative overflow-hidden bg-[var(--color-ink)]">
-  <div data-parallax="0.2" class="pointer-events-none absolute -left-10 top-0 h-72 w-72 rounded-full bg-[var(--color-accent)]/20 blur-3xl" aria-hidden="true"></div>
-  <div data-parallax="-0.2" class="pointer-events-none absolute -right-10 bottom-0 h-72 w-72 rounded-full bg-white/10 blur-3xl" aria-hidden="true"></div>
+<section data-parallax-scope data-glass-spotlight class="relative overflow-hidden bg-[var(--color-inverse-bg)]">
+  <div data-parallax="0.2" class="pointer-events-none absolute -left-10 top-0 h-72 w-72 rounded-full bg-[var(--color-accent)]/25 blur-3xl" aria-hidden="true"></div>
+  <div data-parallax="-0.2" class="pointer-events-none absolute -right-10 bottom-0 h-72 w-72 rounded-full bg-[var(--color-secondary)]/15 blur-3xl" aria-hidden="true"></div>
+  <div data-glass-layer class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300" aria-hidden="true"></div>
 
   <div class="relative mx-auto max-w-2xl px-5 py-24 text-center sm:px-8">
-    <h2 data-reveal class="font-serif text-3xl font-semibold text-[var(--color-paper)] sm:text-4xl">
+    <p data-reveal class="eyebrow mb-3 justify-center">{isAuthenticated ? 'Welcome back' : 'Join marginalia'}</p>
+    <h2 data-reveal class="font-serif text-3xl font-semibold text-[var(--color-inverse-text)] sm:text-4xl">
       {isAuthenticated ? 'Your next story is waiting to be written.' : 'Your words deserve a real audience.'}
     </h2>
-    <p data-reveal class="mx-auto mt-4 max-w-md text-white/60">
+    <p data-reveal class="mx-auto mt-4 max-w-md text-[var(--color-inverse-text-soft)]">
       {isAuthenticated
         ? 'Pick up where you left off, or start something new.'
         : 'Join a platform built for writers first — no ads between your paragraphs, no algorithm deciding who reads you.'}
@@ -21,9 +23,13 @@ const { isAuthenticated } = Astro.props;
     <a
       data-reveal
       href={isAuthenticated ? '/dashboard/create' : '/register'}
-      class="mt-8 inline-block rounded-full bg-[var(--color-paper)] px-7 py-3 text-sm font-medium text-[var(--color-ink)] transition hover:bg-[var(--color-accent)] hover:text-white"
+      class="group relative mt-8 inline-flex items-center gap-2 overflow-hidden rounded-full bg-[var(--color-inverse-text)] px-7 py-3 text-sm font-semibold text-[var(--color-inverse-bg)] transition-transform duration-200 hover:-translate-y-0.5"
     >
-      {isAuthenticated ? 'Start writing' : 'Create your free account'}
+      <span class="absolute inset-0 -translate-x-full bg-[var(--color-accent)] transition-transform duration-300 group-hover:translate-x-0"></span>
+      <span class="relative transition-colors duration-300 group-hover:text-white">{isAuthenticated ? 'Start writing' : 'Create your free account'}</span>
+      <svg class="relative h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6" /></svg>
     </a>
   </div>
 </section>
+
+<script src="../../scripts/glass-spotlight.ts"></script>

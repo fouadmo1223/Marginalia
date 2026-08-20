@@ -23,7 +23,31 @@ if (strip) {
 
   prevBtn?.addEventListener('click', () => strip.scrollBy({ left: -scrollByCard(), behavior: 'smooth' }));
   nextBtn?.addEventListener('click', () => strip.scrollBy({ left: scrollByCard(), behavior: 'smooth' }));
-  strip.addEventListener('scroll', updateButtons, { passive: true });
+
+  // Subtle drift: each card's frame shifts slightly opposite the strip's own
+  // scroll direction, so the gallery reads as layered rather than flat. Applied
+  // to the frame (not the <img>) so it doesn't fight the image's own hover-scale
+  // transform — transforms on parent and child compose independently.
+  const frames = Array.from(strip.querySelectorAll<HTMLElement>('[data-gallery-frame]'));
+  function updateParallax() {
+    if (!strip) return;
+    // Use layout position (offsetLeft, unaffected by our own translateX) rather
+    // than getBoundingClientRect — reading the transformed screen position back
+    // in the same pass that sets it would compound the offset every scroll tick.
+    const viewportCenter = strip.scrollLeft + strip.clientWidth / 2;
+    frames.forEach((frame) => {
+      const card = frame.closest<HTMLElement>('[data-gallery-item]')!;
+      const cardCenter = card.offsetLeft + card.clientWidth / 2;
+      const offset = (cardCenter - viewportCenter) / strip.clientWidth;
+      frame.style.transform = `translateX(${(-offset * 14).toFixed(1)}px)`;
+    });
+  }
+
+  strip.addEventListener('scroll', () => {
+    updateButtons();
+    updateParallax();
+  }, { passive: true });
+  updateParallax();
 
   // Layout (and therefore scrollWidth) can still be settling on first paint —
   // recompute whenever the strip's own size changes rather than trusting a

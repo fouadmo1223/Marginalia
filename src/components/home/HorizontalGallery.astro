@@ -12,12 +12,12 @@ const items = blogs.filter((b) => b.coverImage);
 ---
 
 {items.length >= 3 && (
-  <section id="horiz-gallery" class="border-b border-[var(--color-line)] bg-white">
+  <section id="horiz-gallery" class="border-b border-[var(--color-border)] bg-[var(--color-surface-raised)]">
     <div class="mx-auto max-w-5xl px-5 pt-14 sm:px-8">
       <div data-reveal class="mb-6 flex items-end justify-between gap-4">
         <div>
-          <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--color-accent)]">More to read</p>
-          <h2 class="font-serif text-2xl font-semibold text-[var(--color-ink)]">Scroll through the archive</h2>
+          <p class="eyebrow mb-1">More to read</p>
+          <h2 class="font-serif text-2xl font-semibold text-[var(--color-ink-strong)]">Scroll through the archive</h2>
         </div>
         <div class="flex shrink-0 gap-2.5">
           <button
@@ -46,20 +46,23 @@ const items = blogs.filter((b) => b.coverImage);
       style="scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; touch-action: pan-x;"
     >
       {items.map((blog, i) => (
-        <a href={`/blog/${blog.slug}`} data-reveal style={`transition-delay: ${Math.min(i, 4) * 60}ms`} class="group block w-[78vw] shrink-0 snap-start sm:w-[38vw] lg:w-[26vw]">
-          <div class="relative overflow-hidden rounded-lg bg-[var(--color-paper-raised)]">
+        <a href={`/blog/${blog.slug}`} data-reveal data-gallery-item style={`transition-delay: ${Math.min(i, 4) * 60}ms`} class="group block w-[78vw] shrink-0 snap-start sm:w-[38vw] lg:w-[26vw]">
+          <div data-gallery-frame class="relative overflow-hidden rounded-2xl bg-[var(--color-paper-raised)] shadow-sm transition-shadow duration-300 group-hover:shadow-xl">
             <img
               src={blog.coverImage!.url}
               alt=""
               loading="lazy"
-              class="aspect-[3/4] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+              class="aspect-[3/4] w-full origin-center object-cover transition-transform duration-700 ease-out group-hover:scale-110"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/0 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+            <span class="absolute left-3 top-3 rounded-full bg-black/30 px-2 py-0.5 text-[10px] font-semibold text-white opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
+              {String(i + 1).padStart(2, '0')}
+            </span>
             <svg class="absolute bottom-3 right-3 h-7 w-7 translate-y-2 text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
           </div>
-          <h3 class="mt-3 font-serif text-lg font-semibold leading-snug text-[var(--color-ink)] transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[var(--color-accent)]">
+          <h3 class="mt-3 font-serif text-lg font-semibold leading-snug text-[var(--color-ink-strong)] transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[var(--color-accent)]">
             {blog.title}
           </h3>
           {blog.author && <p class="mt-1 text-xs text-[var(--color-ink-soft)]">{blog.author.name}</p>}

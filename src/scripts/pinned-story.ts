@@ -31,9 +31,14 @@ motionSafe.add(PREFERS_MOTION, () => {
             scrub: 0.5,
             onToggle: (self) => {
               if (self.isActive) {
-                dots.forEach((dot, di) => dot.classList.toggle('bg-[var(--color-accent)]', di === i));
-                dots.forEach((dot, di) => dot.classList.toggle('w-8', di !== i));
-                dots.forEach((dot, di) => dot.classList.toggle('w-14', di === i));
+                // Two conflicting `bg-*` utility classes can't reliably override each
+                // other by toggling (CSS source order wins, not DOM class order), so
+                // the active dot's color is set directly instead of via a second class.
+                dots.forEach((dot, di) => {
+                  dot.style.backgroundColor = di === i ? 'var(--color-accent)' : '';
+                  dot.classList.toggle('w-14', di === i);
+                  dot.classList.toggle('w-8', di !== i);
+                });
               }
             },
           },
