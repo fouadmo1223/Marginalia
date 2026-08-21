@@ -11,7 +11,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "seed": "tsx scripts/seed.ts",
-    "bootstrap-admin": "tsx scripts/bootstrap-admin.ts"
+    "bootstrap-admin": "tsx scripts/bootstrap-admin.ts",
+    "keep-alive": "tsx scripts/keep-alive.ts"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.4",
